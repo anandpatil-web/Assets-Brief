@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jewellery AI Shoot Brief</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
+    background: #f0f0f8;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  #brief-screen {
+    padding: 32px 28px;
+  }
+
+  /* HEADER */
+  .site-header {
+    margin-bottom: 24px;
+  }
+  .header-inner { max-width: 960px; margin: 0 auto; }
+  .header-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #111827;
+    margin-bottom: 3px;
+  }
+  .header-title em { font-style: normal; color: #7c5cfc; }
+  .header-sub {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-block;
+    letter-spacing: 0.2px;
+  }
+  .btn-primary { background: #7c5cfc; color: #fff; box-shadow: 0 4px 16px rgba(124,92,252,0.35); }
+  .btn-primary:hover { background: #6d4fe8; box-shadow: 0 6px 20px rgba(124,92,252,0.45); }
+  .btn-ghost { background: #fff; border: 1px solid #e5e7eb; color: #6b7280; box-shadow: 0 2px 8px rgba(100,100,160,0.1); }
+  .btn-ghost:hover { border-color: #7c5cfc; color: #7c5cfc; }
+
+  /* LEGEND */
+  .legend-bar {
+    max-width: 960px;
+    margin: 0 auto 20px;
+  }
+  .legend-inner { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .legend-label { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: #9ca3af; font-weight: 700; margin-right: 4px; }
+  .legend-items { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* MAIN */
+  .main { max-width: 960px; margin: 0 auto; padding-bottom: 60px; }
+
+  /* SECTION */
+  .section { margin-bottom: 10px; }
+  .section-block {
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.06);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid #f0f0f8;
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header-left { display: flex; align-items: center; gap: 10px; }
+  .section-num {
+    font-size: 10px;
+    color: #9ca3af;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+  }
+  .section-desc {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+  .section-chevron { color: #c4c4d4; font-size: 16px; transition: transform 0.2s; }
+  .section-chevron.open { transform: rotate(90deg); }
+  .section-body { padding: 16px 18px; display: none; }
+  .section-body.open { display: block; }
+
+  /* QUICK INPUT BLOCK */
+  .quick-block {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0f8;
+  }
+  .quick-block-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .quick-block-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+  }
+  .quick-block-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+  }
+  .quick-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .quick-keyword-input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 12px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .quick-keyword-input:focus {
+    outline: none;
+    border-color: #7c5cfc;
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+  }
+  .quick-keyword-input::placeholder { color: #d1d5db; }
+  .quick-add-btn {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 14px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    color: #7c5cfc;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .quick-add-btn:hover { background: #ede9fe; }
+  .quick-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; min-height: 0; }
+  .quick-chip {
+    font-size: 11px;
+    font-weight: 600;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 20px;
+    padding: 3px 4px 3px 10px;
+    color: #7c5cfc;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .quick-chip-remove {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    border: none;
+    background: none;
+    padding: 0 3px;
+    color: #c4b5fd;
+    opacity: 0.7;
+    transition: opacity 0.12s;
+  }
+  .quick-chip-remove:hover { opacity: 1; color: #7c5cfc; }
+  .quick-notes {
+    width: 100%;
+    font-family: inherit;
+    font-size: 12px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    line-height: 1.6;
+    resize: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    margin-bottom: 8px;
+  }
+  .quick-notes:focus {
+    outline: none;
+    border-color: #7c5cfc;
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+  }
+  .quick-notes::placeholder { color: #d1d5db; }
+  .quick-img-upload {
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: transparent;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .quick-img-upload:hover { border-color: #7c5cfc; background: rgba(124,92,252,0.03); }
+  .quick-img-upload input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .quick-img-upload-icon { font-size: 14px; }
+  .quick-img-upload-label { font-size: 11px; font-weight: 600; color: #9ca3af; }
+  .quick-img-upload:hover .quick-img-upload-label { color: #7c5cfc; }
+  .quick-img-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  /* COL HEADERS */
+  .col-headers {
+    display: grid;
+    grid-template-columns: 1fr 36px 1fr;
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+  .col-header {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+  }
+
+  /* ROW */
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 36px 1fr;
+    gap: 0;
+    margin-bottom: 10px;
+    align-items: stretch;
+  }
+
+  /* SHOOT CELL */
+  .shoot-cell {
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+    padding: 12px 14px;
+  }
+
+  /* AI CELL */
+  .ai-cell {
+    background: #f5f3ff;
+    border: 1px solid #ebebf5;
+    border-left: 1px solid #ddd6fe;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
+  }
+
+  .arrow-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f3ff;
+    border-top: 1px solid #ebebf5;
+    border-bottom: 1px solid #ebebf5;
+    font-size: 14px;
+    color: #7c5cfc;
+  }
+
+  .cell-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .cell-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: #111827;
+  }
+  .cell-detail {
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+
+  /* EDITABLE FIELD */
+  .field-group { margin-top: 8px; }
+  .field-label {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .field-input, .field-textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 11px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 7px 10px;
+    line-height: 1.5;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    resize: none;
+  }
+  .field-input:focus, .field-textarea:focus {
+    outline: none;
+    border-color: #7c5cfc;
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+  }
+  .field-input::placeholder, .field-textarea::placeholder {
+    color: #d1d5db;
+  }
+
+  /* PROMPT TOKENS */
+  .token-area { margin-top: 8px; }
+  .token-label { font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: #9ca3af; font-weight: 700; display: block; margin-bottom: 6px; }
+  .tokens-list { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; min-height: 26px; }
+  .token {
+    font-size: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    padding: 3px 4px 3px 10px;
+    color: #2563eb;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .token-remove {
+    cursor: pointer;
+    color: #93c5fd;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    border: none;
+    background: none;
+    padding: 0 3px;
+    opacity: 0.6;
+    transition: opacity 0.12s;
+  }
+  .token-remove:hover { opacity: 1; color: #2563eb; }
+  .token-add-row { display: flex; gap: 5px; }
+  .token-input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 11px;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 5px 9px;
+    color: #374151;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .token-input:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .token-btn {
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    white-space: nowrap;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .token-btn:hover { border-color: #7c5cfc; color: #7c5cfc; }
+
+  /* IMAGE UPLOAD */
+  .img-upload-area {
+    margin-top: 8px;
+    border: 1.5px dashed #ddd6fe;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: rgba(124,92,252,0.02);
+    position: relative;
+  }
+  .img-upload-area:hover { border-color: #7c5cfc; background: rgba(124,92,252,0.05); }
+  .img-upload-area input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .img-upload-label { font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: #7c5cfc; font-weight: 700; margin-bottom: 3px; display: block; }
+  .img-upload-hint { font-size: 10px; color: #9ca3af; }
+  .img-preview-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .img-thumb-wrap { position: relative; width: 60px; height: 60px; }
+  .img-thumb {
+    width: 60px; height: 60px; object-fit: cover;
+    border-radius: 8px; border: 1px solid #ebebf5;
+    display: block;
+  }
+  .img-thumb-remove {
+    position: absolute; top: -4px; right: -4px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #374151; color: #fff;
+    font-size: 10px; line-height: 16px; text-align: center;
+    cursor: pointer; border: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* METHOD TAGS */
+  .method-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .tag {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .tag-prompt  { background: #fff7ed; color: #ea6c20; border: 1px solid #fed7aa; }
+  .tag-ref     { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  .tag-control { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .tag-lora    { background: #f5f3ff; color: #7c5cfc; border: 1px solid #ddd6fe; }
+  .tag-post    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+  /* NOTES AREA */
+  .notes-section {
+    margin-top: 10px;
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.06);
+  }
+  .notes-title { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 10px; }
+  .notes-textarea {
+    width: 100%;
+    min-height: 100px;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    color: #374151;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 10px 12px;
+    resize: vertical;
+    line-height: 1.7;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .notes-textarea::placeholder { color: #d1d5db; }
+  .notes-textarea:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+
+  /* FOOTER */
+  .site-footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: #9ca3af;
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 700px) {
+    body { padding: 16px; }
+    .row { grid-template-columns: 1fr; }
+    .arrow-col { display: none; }
+    .shoot-cell { border-radius: 10px 10px 0 0; border-right: 1px solid #ebebf5; border-bottom: none; }
+    .ai-cell { border-radius: 0 0 10px 10px; border-left: 1px solid #ebebf5; border-top: 1px solid #ddd6fe; }
+    .section-desc { display: none; }
+    .col-headers { display: none; }
+  }
+
+  /* MASTER PROMPT BAR */
+  .prompt-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #ebebf5;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 999;
+    box-shadow: 0 -4px 20px rgba(100,100,160,0.08);
+  }
+  .prompt-bar-left { font-size: 12px; color: #9ca3af; }
+  .prompt-bar-left strong { color: #374151; font-weight: 700; }
+  .prompt-bar-btn {
+    background: #7c5cfc;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 16px rgba(124,92,252,0.35);
+    transition: background 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .prompt-bar-btn:hover { background: #6d4fe8; box-shadow: 0 6px 20px rgba(124,92,252,0.45); }
+
+  /* MASTER PROMPT MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(17,24,39,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 780px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -8px 40px rgba(100,100,160,0.18);
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f0f0f8;
+    flex-shrink: 0;
+  }
+  .modal-title { font-size: 15px; font-weight: 800; color: #111827; }
+  .modal-sub   { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+  .modal-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #f0f0f8; border: none; cursor: pointer;
+    font-size: 16px; color: #6b7280;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.12s;
+  }
+  .modal-close:hover { background: #e5e7eb; }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+  .prompt-section { margin-bottom: 16px; }
+  .prompt-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 6px;
+  }
+  .prompt-text {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .prompt-full {
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 220px;
+    overflow-y: auto;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .modal-footer {
+    padding: 14px 24px 20px;
+    border-top: 1px solid #f0f0f8;
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .copy-btn {
+    flex: 1;
+    background: #7c5cfc;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+    box-shadow: 0 4px 16px rgba(124,92,252,0.3);
+  }
+  .copy-btn:hover { background: #6d4fe8; }
+  .copy-btn.copied { background: #16a34a; box-shadow: 0 4px 16px rgba(22,163,74,0.3); }
+  .regen-btn {
+    background: #f5f3ff;
+    color: #7c5cfc;
+    border: 1px solid #ddd6fe;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .regen-btn:hover { background: #ede9fe; }
+
+  /* Master block */
+  .prompt-master-block {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .prompt-master-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .prompt-master-label { font-size: 12px; font-weight: 700; color: #7c5cfc; }
+  .prompt-master-sub   { font-size: 10px; color: #a78bfa; margin-top: 1px; }
+
+  /* Small copy button */
+  .copy-btn-sm {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    background: #7c5cfc;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .copy-btn-sm:hover { background: #6d4fe8; }
+  .copy-btn-sm.copied { background: #16a34a; }
+
+  /* Divider */
+  .prompt-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 14px;
+    color: #d1d5db;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .prompt-divider::before, .prompt-divider::after {
+    content: ''; flex: 1; height: 1px; background: #f0f0f8;
+  }
+
+  /* Individual section rows */
+  .prompt-row {
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .prompt-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .prompt-row-label { font-size: 11px; font-weight: 700; color: #374151; }
+  .prompt-row-empty { font-size: 11px; color: #d1d5db; font-style: italic; }
+  .prompt-row-text {
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* FLOATING SAVE */
+  .save-toolbar {
+    position: fixed;
+    bottom: 72px;
+    right: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 998;
+  }
+  .save-status {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    transition: color 0.3s;
+    white-space: nowrap;
+  }
+  .save-status.saved  { color: #16a34a; }
+  .save-status.saving { color: #7c5cfc; }
+  .save-status.dirty  { color: #d97706; }
+  .save-btn-float {
+    background: #7c5cfc;
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 16px rgba(124,92,252,0.35);
+    transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+  }
+  .save-btn-float:hover { background: #6d4fe8; box-shadow: 0 6px 20px rgba(124,92,252,0.45); }
+  .save-btn-float:disabled { opacity: 0.4; cursor: default; }
+  .save-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .save-dot.unsaved { background: #fde68a; }
+
+  @media print {
+    .btn, .header-actions, .prompt-bar, .save-toolbar { display: none; }
+    body { background: white; }
+  }
+<style>
+  /* HOME SCREEN */
+  #home-screen {
+    min-height: 100vh;
+    padding-top: 40px;
+    padding-bottom: 60px;
+    padding-left: 94px;
+    padding-right: 94px;
+  }
+  .home-topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .home-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; color: #111827; }
+  .home-sub   { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+
+  .home-tabs {
+    display: flex;
+    gap: 4px;
+    background: #ebebf5;
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+  .home-tab {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #9ca3af;
+    transition: background 0.15s, color 0.15s;
+  }
+  .home-tab.active { background: #fff; color: #111827; box-shadow: 0 1px 4px rgba(100,100,160,0.1); }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .brief-card {
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.06);
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+    position: relative;
+  }
+  .brief-card:hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 16px rgba(124,92,252,0.12);
+    transform: translateY(-1px);
+  }
+  .brief-card-icon { font-size: 20px; margin-bottom: 10px; display: block; }
+  .brief-card-name { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 3px; }
+  .brief-card-sub  { font-size: 11px; color: #9ca3af; margin-bottom: 10px; }
+  .brief-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brief-card-count {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .brief-card-arrow { font-size: 16px; color: #d1d5db; }
+  .brief-card:hover .brief-card-arrow { color: #7c5cfc; }
+
+  .new-brief-card {
+    background: transparent;
+    border: 2px dashed #e5e7eb;
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 130px;
+    gap: 6px;
+  }
+  .new-brief-card:hover { border-color: #7c5cfc; background: rgba(124,92,252,0.03); }
+  .new-brief-card .plus { font-size: 22px; color: #d1d5db; }
+  .new-brief-card:hover .plus { color: #7c5cfc; }
+  .new-brief-card .new-lbl { font-size: 12px; font-weight: 600; color: #9ca3af; }
+  .new-brief-card:hover .new-lbl { color: #7c5cfc; }
+
+  .home-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  /* SETUP SCREEN */
+  #setup-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 24px;
+  }
+  .setup-card {
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 20px;
+    padding: 40px 40px 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 4px 24px rgba(100,100,160,0.1);
+  }
+  .setup-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .setup-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    color: #111827;
+    margin-bottom: 6px;
+  }
+  .setup-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .setup-type-label {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .setup-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .setup-option {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    text-align: left;
+    background: #fff;
+    position: relative;
+  }
+  .setup-option:hover {
+    border-color: #c4b5fd;
+    background: #faf8ff;
+  }
+  .setup-option.selected {
+    border-color: #7c5cfc;
+    background: #f5f3ff;
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.1);
+  }
+  .setup-option-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .setup-option-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 3px;
+  }
+  .setup-option-desc {
+    font-size: 11px;
+    color: #9ca3af;
+    line-height: 1.5;
+  }
+  .setup-option .check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #7c5cfc;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .setup-option.selected .check { display: flex; }
+  .check-svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .setup-name-label {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .setup-name-input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .setup-name-input:focus {
+    outline: none;
+    border-color: #7c5cfc;
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+  }
+  .setup-name-input::placeholder { color: #d1d5db; }
+
+  .setup-continue {
+    width: 100%;
+    background: #7c5cfc;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 4px 16px rgba(124,92,252,0.35);
+  }
+  .setup-continue:hover:not(:disabled) { background: #6d4fe8; box-shadow: 0 6px 20px rgba(124,92,252,0.45); }
+  .setup-continue:disabled { opacity: 0.4; cursor: default; }
+
+  /* BRIEF (hidden until setup done) */
+  #setup-screen { display: none; }
+  #brief-screen { display: none; }
+
+  /* Breadcrumb chip in header */
+  .header-context-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: #f5f3ff;
+    color: #7c5cfc;
+    border: 1px solid #ddd6fe;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .header-context-chip:hover { background: #ede9fe; }
+  /* SIMPLIFIED INPUT GRID */
+  .si-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .si-field { display: flex; flex-direction: column; gap: 6px; }
+  .si-full  { grid-column: 1 / -1; }
+  .si-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #9ca3af;
+  }
+  .si-chip-row { display: flex; gap: 6px; }
+  .si-input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 12px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .si-input:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .si-input::placeholder { color: #d1d5db; }
+  .si-add-btn {
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 14px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    color: #7c5cfc;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .si-add-btn:hover { background: #ede9fe; }
+  .si-textarea {
+    flex: 1;
+    font-family: inherit;
+    font-size: 12px;
+    color: #374151;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .si-textarea:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .si-textarea::placeholder { color: #d1d5db; }
+  .si-upload {
+    border: 1.5px dashed #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .si-upload:hover { border-color: #7c5cfc; background: rgba(124,92,252,0.03); }
+  .si-upload input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .si-upload-label { font-size: 11px; font-weight: 600; color: #9ca3af; }
+  .si-upload:hover .si-upload-label { color: #7c5cfc; }
+  @media (max-width: 700px) { .si-grid { grid-template-columns: 1fr; } .si-full { grid-column: 1; } }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home-screen">
+  <div class="home-topbar">
+    <div>
+      <div class="home-title">Shoot Briefs</div>
+      <div class="home-sub">AI image production briefs by persona &amp; collection</div>
+    </div>
+    <button class="btn btn-primary" onclick="showSetup()">+ New Brief</button>
+  </div>
+
+  <div class="home-tabs">
+    <button class="home-tab active" id="tab-persona" onclick="switchTab('persona')">👤 Personas</button>
+    <button class="home-tab" id="tab-collection" onclick="switchTab('collection')">💎 Collections</button>
+  </div>
+
+  <div id="home-grid-persona">
+    <div class="home-grid" id="grid-persona"></div>
+  </div>
+  <div id="home-grid-collection" style="display:none">
+    <div class="home-grid" id="grid-collection"></div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <button id="setup-back" onclick="showScreen('home-screen')" style="background:none;border:none;cursor:pointer;font-size:12px;color:#9ca3af;font-family:inherit;font-weight:600;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:4px;transition:color 0.12s;" onmouseover="this.style.color='#7c5cfc'" onmouseout="this.style.color='#9ca3af'">← Back to briefs</button>
+    <p class="setup-eyebrow">AI Image Production · Brief Template</p>
+    <h1 class="setup-title">New shoot brief</h1>
+    <p class="setup-sub">Map this brief to a persona or a collection so it stays organised with the rest of your production work.</p>
+
+    <span class="setup-type-label">Map to</span>
+    <div class="setup-options">
+      <button class="setup-option" id="opt-persona" onclick="selectType('persona')">
+        <span class="setup-option-icon">👤</span>
+        <div class="setup-option-name">Persona</div>
+        <div class="setup-option-desc">A customer archetype or audience segment</div>
+        <span class="check"><svg class="check-svg" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></span>
+      </button>
+      <button class="setup-option" id="opt-collection" onclick="selectType('collection')">
+        <span class="setup-option-icon">💎</span>
+        <div class="setup-option-name">Collection</div>
+        <div class="setup-option-desc">A product line or seasonal campaign</div>
+        <span class="check"><svg class="check-svg" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></span>
+      </button>
+    </div>
+
+    <label class="setup-name-label" id="name-label">Name</label>
+    <input class="setup-name-input" id="setup-name" type="text" placeholder="e.g. Gala Grandeur" oninput="checkSetupReady()">
+
+    <button class="setup-continue" id="setup-btn" disabled onclick="startBrief()">Continue →</button>
+  </div>
+</div>
+
+<!-- BRIEF SCREEN -->
+<div id="brief-screen">
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-context-chip" onclick="goBack()" id="context-chip">← Persona</div>
+    <p class="header-eyebrow">AI Image Production · Brief Template</p>
+    <h1 class="header-title">Jewellery Shoot <em>to AI Brief</em></h1>
+    <p class="header-sub">Every field is editable. Upload reference images where indicated. Prompt tokens can be added or removed.</p>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn btn-ghost" onclick="exportHTML()">Download filled HTML</button>
+    </div>
+  </div>
+</header>
+
+<div class="legend-bar">
+  <div class="legend-inner">
+    <span class="legend-label">Input method</span>
+    <div class="legend-items">
+      <span class="tag tag-prompt">Prompt text</span>
+      <span class="tag tag-ref">Reference image</span>
+      <span class="tag tag-control">ControlNet</span>
+      <span class="tag tag-lora">LoRA / fine-tune</span>
+      <span class="tag tag-post">Post-process</span>
+    </div>
+  </div>
+</div>
+
+<main class="main">
+
+  <!-- 1. CREATIVE CONCEPT -->
+  <div class="section">
+    <div class="section-block" id="sb-01">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">01</span>
+        <h2 class="section-title">Creative concept</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">The why behind every decision</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-01" type="text" placeholder="e.g. mediterranean light…" onkeydown="siAddOnEnter(event,'quick-chips-sb-01','si-input-sb-01')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-01','si-input-sb-01')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-01">
+            <span class="quick-chip">unhurried, timeless, editorial<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">mediterranean light<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">warm ivory tones<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">dusty rose, aged gold<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">--ar 1:1, subject centred<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+          </div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-01" rows="4" placeholder="Campaign narrative, mood, colour story, usage channels…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Reference images</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-01').click()">
+            <input type="file" id="si-img-sb-01" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-01')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-01"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- 2. PRODUCT SELECTION -->
+  <div class="section">
+    <div class="section-block" id="sb-02">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">02</span>
+        <h2 class="section-title">Product selection</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">What is being photographed</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-02" type="text" placeholder="e.g. macro close-up, ring on finger…" onkeydown="siAddOnEnter(event,'quick-chips-sb-02','si-input-sb-02')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-02','si-input-sb-02')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-02">
+            <span class="quick-chip">macro close-up, ring on finger<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">side profile, necklace<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">hand portrait, 85mm<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">gold chain layered with pearl pendant<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+          </div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-02" rows="4" placeholder="Shot list by SKU, views required, layering combos, LoRA training notes…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Product macro photos</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-02').click()">
+            <input type="file" id="si-img-sb-02" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-02')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-02"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- 3. MODEL + TALENT -->
+  <div class="section">
+    <div class="section-block" id="sb-03">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">03</span>
+        <h2 class="section-title">Model + talent</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">Who is in the frame</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-03" type="text" placeholder="e.g. dewy natural skin, dark eyes…" onkeydown="siAddOnEnter(event,'quick-chips-sb-03','si-input-sb-03')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-03','si-input-sb-03')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-03">
+            <span class="quick-chip">woman, warm medium skin tone<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">defined cheekbones, dark eyes<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">long slender fingers<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">dark hair loosely pinned<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">dewy natural skin, no eye makeup<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">subtle warm lip<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+          </div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-03" rows="4" placeholder="Casting brief, hair direction, makeup look, skin finish…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Casting / face references</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-03').click()">
+            <input type="file" id="si-img-sb-03" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-03')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-03"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- 4. STYLING + WARDROBE -->
+  <div class="section">
+    <div class="section-block" id="sb-04">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">04</span>
+        <h2 class="section-title">Styling + wardrobe</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">Everything the model wears</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-04" type="text" placeholder="e.g. wide scoop neck, matte linen…" onkeydown="siAddOnEnter(event,'quick-chips-sb-04','si-input-sb-04')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-04','si-input-sb-04')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-04">
+            <span class="quick-chip">wide scoop neck, ivory linen<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">matte washed linen, no sheen<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">softly draped<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">aged marble surface<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">single dried rose stem<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+          </div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-04" rows="4" placeholder="Garment notes per look, fabric decisions, prop list…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Wardrobe / prop references</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-04').click()">
+            <input type="file" id="si-img-sb-04" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-04')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-04"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- 5. SET + ENVIRONMENT -->
+  <div class="section">
+    <div class="section-block" id="sb-05">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">05</span>
+        <h2 class="section-title">Set + environment</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">Where the image lives</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-05" type="text" placeholder="e.g. soft side light, warm golden hour…" onkeydown="siAddOnEnter(event,'quick-chips-sb-05','si-input-sb-05')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-05','si-input-sb-05')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-05">
+            <span class="quick-chip">sun-drenched terrace<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">midday mediterranean light<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">rough white plaster<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">soft side light from left<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">warm golden hour, low angle<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">specular highlight on metal<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">macro close-up, 100mm<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+            <span class="quick-chip">portrait crop, 85mm f/1.4<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button></span>
+          </div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-05" rows="4" placeholder="Location, background, lighting setup, camera angles…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Location / lighting references</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-05').click()">
+            <input type="file" id="si-img-sb-05" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-05')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-05"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- 6. DELIVERABLE SPEC -->
+  <div class="section">
+    <div class="section-block" id="sb-06">
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-header-left">
+        <span class="section-num">06</span>
+        <h2 class="section-title">Deliverable spec</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="section-desc">What leaves the pipeline</span>
+        <span class="section-chevron open">›</span>
+      </div>
+    </div>
+    <div class="section-body open">
+      <div class="si-grid">
+        <div class="si-field si-full">
+          <label class="si-label">Keywords</label>
+          <div class="si-chip-row">
+            <input class="si-input" id="si-input-sb-06" type="text" placeholder="e.g. 4× upscale, Real-ESRGAN, 300dpi TIFF…" onkeydown="siAddOnEnter(event,'quick-chips-sb-06','si-input-sb-06')">
+            <button class="si-add-btn" onclick="siAdd('quick-chips-sb-06','si-input-sb-06')">+ Add</button>
+          </div>
+          <div class="quick-chips" id="quick-chips-sb-06"></div>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Notes</label>
+          <textarea class="si-textarea" id="quick-notes-sb-06" rows="4" placeholder="Image count per SKU, retouching scope, file formats, batch plan, post-gen pipeline…"></textarea>
+        </div>
+        <div class="si-field">
+          <label class="si-label">Reference / example outputs</label>
+          <div class="si-upload" onclick="document.getElementById('si-img-sb-06').click()">
+            <input type="file" id="si-img-sb-06" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-06')">
+            <span>🖼</span>
+            <span class="si-upload-label">Add images</span>
+          </div>
+          <div class="quick-img-grid" id="si-prev-sb-06"></div>
+        </div>
+      </div>
+    </div><!-- /section-body -->
+    </div><!-- /section-block -->
+  </div><!-- /section -->
+
+  <!-- NOTES -->
+  <div class="notes-section">
+    <p class="notes-title">Production notes</p>
+    <textarea class="notes-textarea" placeholder="Any additional notes, flagged risks, decisions pending sign-off, or team contacts…"></textarea>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  Jewellery AI Shoot Brief · Editable Template · All fields are local — nothing is sent or stored
+</footer>
+
+  <!-- FLOATING SAVE -->
+  <div class="save-toolbar" id="save-toolbar">
+    <span class="save-status" id="save-status">All changes saved</span>
+    <button class="save-btn-float" id="save-btn" onclick="saveNow()">
+      <span class="save-dot" id="save-dot"></span>
+      Save
+    </button>
+  </div>
+
+  <!-- MASTER PROMPT BAR -->
+  <div class="prompt-bar">
+    <div class="prompt-bar-left"><strong>Master Prompt</strong> — build from filled brief inputs</div>
+    <button class="prompt-bar-btn" onclick="openPromptModal()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8h14M8 1l7 7-7 7"/></svg>
+      Generate master prompt
+    </button>
+  </div>
+
+  <!-- MASTER PROMPT MODAL -->
+  <div class="modal-overlay" id="prompt-modal" onclick="closeOnBackdrop(event)">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Master Prompt</div>
+          <div class="modal-sub">Copy the full prompt, or pick individual sections to use separately</div>
+        </div>
+        <button class="modal-close" onclick="closePromptModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="prompt-master-block">
+          <div class="prompt-master-header">
+            <div>
+              <div class="prompt-master-label">Master prompt</div>
+              <div class="prompt-master-sub">All sections combined</div>
+            </div>
+            <button class="copy-btn-sm" id="copy-master-btn" onclick="copyText('master-prompt-output','copy-master-btn')">Copy all</button>
+          </div>
+          <div class="prompt-full" id="master-prompt-output">Click Regenerate to assemble.</div>
+        </div>
+        <div class="prompt-divider"><span>or use individually</span></div>
+        <div id="prompt-sections-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="regen-btn" onclick="generatePrompt()">↺ Regenerate</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /brief-screen -->
+
+<script>
+// ── Supabase ─────────────────────────────────────────────
+const SUPABASE_URL = 'https://naftyqqcfqfbgeucaigl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hZnR5cXFjZnFmYmdldWNhaWdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NTU3OTIsImV4cCI6MjA5NDMzMTc5Mn0.maHo0zpWj647hYFYh2kHsngqoLnFyp8Jvf4SpdrE-V8';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentBriefId   = null;
+let currentBriefType = null;
+let currentBriefName = null;
+
+// ── Data ────────────────────────────────────────────────
+const SEED_DATA = {
+  persona: [
+    { name: 'Gala Grandeur',    sub: '3 collections',      briefs: 1 },
+    { name: 'Pride',            sub: '4 collections',      briefs: 2 },
+    { name: 'Untamed in Love',  sub: '1 collection',       briefs: 1 },
+    { name: 'Party Girl',       sub: '2 collections',      briefs: 1 },
+    { name: 'Modern Minimalist',sub: '2 collections',      briefs: 0 },
+    { name: 'The Bride',        sub: '1 collection',       briefs: 0 },
+  ],
+  collection: [
+    { name: 'Ensemble',         sub: 'Gala Grandeur',      briefs: 1 },
+    { name: 'Empress',          sub: 'The Maharani',       briefs: 1 },
+    { name: 'Lumiere',          sub: 'Qween of Eden',      briefs: 1 },
+    { name: 'Eleve',            sub: 'Stairway to Power',  briefs: 1 },
+    { name: 'Victorious',       sub: 'Victorious Love',    briefs: 1 },
+    { name: 'Confetti',         sub: 'Paris at Midnight',  briefs: 0 },
+    { name: 'Wolf',             sub: 'Pride',              briefs: 0 },
+    { name: 'Discoball',        sub: 'Party Girl',         briefs: 0 },
+  ]
+};
+
+async function loadBriefs() {
+  try {
+    const { data, error } = await db.from('shoot_briefs').select('id, type, name');
+    if (error) throw error;
+    (data || []).forEach(b => {
+      const list = SEED_DATA[b.type];
+      if (!list) return;
+      const existing = list.find(i => i.name === b.name);
+      if (existing) {
+        existing.id = b.id;
+        existing.briefs = 1;
+      } else {
+        list.push({ name: b.name, sub: 'Custom', briefs: 1, id: b.id });
+      }
+    });
+  } catch (e) {
+    const saved = JSON.parse(localStorage.getItem('shoot_briefs') || '[]');
+    saved.forEach(b => {
+      const list = SEED_DATA[b.type];
+      if (list && !list.find(i => i.name === b.name))
+        list.push({ name: b.name, sub: 'Custom', briefs: 1 });
+    });
+  }
+  renderGrid('persona');
+  renderGrid('collection');
+}
+
+async function saveBrief(type, name) {
+  currentBriefId   = currentBriefId || crypto.randomUUID();
+  currentBriefType = type;
+  currentBriefName = name;
+  try {
+    const { error } = await db.from('shoot_briefs').upsert({
+      id: currentBriefId, type, name,
+      data: {}, updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+  } catch (e) {
+    const saved = JSON.parse(localStorage.getItem('shoot_briefs') || '[]');
+    if (!saved.find(b => b.type === type && b.name === name)) {
+      saved.push({ type, name });
+      localStorage.setItem('shoot_briefs', JSON.stringify(saved));
+    }
+  }
+}
+
+// ── Screen switching ────────────────────────────────────
+function showScreen(id) {
+  ['home-screen','setup-screen','brief-screen'].forEach(s => {
+    const el = document.getElementById(s);
+    el.style.display = 'none';
+  });
+  const target = document.getElementById(id);
+  target.style.display = id === 'setup-screen' ? 'flex' : (id === 'home-screen' ? 'block' : 'block');
+  window.scrollTo(0, 0);
+}
+
+// ── Home ────────────────────────────────────────────────
+let activeTab = 'persona';
+
+function renderGrid(type) {
+  const grid = document.getElementById('grid-' + type);
+  grid.innerHTML = '';
+  SEED_DATA[type].forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'brief-card';
+    card.onclick = () => openBrief(type, item.name, item.id || null);
+    card.innerHTML = `
+      <span class="brief-card-icon">${type === 'persona' ? '👤' : '💎'}</span>
+      <div class="brief-card-name">${item.name}</div>
+      <div class="brief-card-sub">${item.sub}</div>
+      <div class="brief-card-meta">
+        <span class="brief-card-count">${item.briefs} brief${item.briefs !== 1 ? 's' : ''}</span>
+        <span class="brief-card-arrow">›</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+  // New brief card
+  const newCard = document.createElement('div');
+  newCard.className = 'new-brief-card';
+  newCard.onclick = () => showSetup(type);
+  newCard.innerHTML = `<span class="plus">+</span><span class="new-lbl">New brief</span>`;
+  grid.appendChild(newCard);
+}
+
+function switchTab(type) {
+  activeTab = type;
+  document.getElementById('tab-persona').classList.toggle('active', type === 'persona');
+  document.getElementById('tab-collection').classList.toggle('active', type === 'collection');
+  document.getElementById('home-grid-persona').style.display   = type === 'persona'    ? 'block' : 'none';
+  document.getElementById('home-grid-collection').style.display = type === 'collection' ? 'block' : 'none';
+}
+
+async function openBrief(type, name, id) {
+  currentBriefId   = id || null;
+  currentBriefType = type;
+  currentBriefName = name;
+  const label = (type === 'persona' ? '👤 ' : '💎 ') + name;
+  document.getElementById('context-chip').textContent = '← ' + label;
+  showScreen('brief-screen');
+  isDirty = false;
+  document.getElementById('save-dot').classList.remove('unsaved');
+  setStatus('Loading…', 'saving');
+  try {
+    if (id) {
+      const { data, error } = await db.from('shoot_briefs').select('data').eq('id', id).single();
+      if (error) throw error;
+      if (data?.data) restoreBriefData(data.data);
+    } else {
+      const key = `brief_autosave_${type}_${name}`;
+      const saved = localStorage.getItem(key);
+      if (saved) restoreBriefData(JSON.parse(saved));
+    }
+  } catch (e) {
+    const saved = localStorage.getItem('brief_autosave');
+    if (saved) restoreBriefData(JSON.parse(saved));
+  }
+  setStatus('All changes saved', '');
+  watchForChanges();
+  startAutosave();
+}
+
+// ── Setup ───────────────────────────────────────────────
+let selectedType = null;
+
+function showSetup(preselect) {
+  selectedType = null;
+  document.getElementById('opt-persona').classList.remove('selected');
+  document.getElementById('opt-collection').classList.remove('selected');
+  document.getElementById('setup-name').value = '';
+  document.getElementById('setup-btn').disabled = true;
+  showScreen('setup-screen');
+  if (preselect) selectType(preselect);
+}
+
+function selectType(type) {
+  selectedType = type;
+  document.getElementById('opt-persona').classList.toggle('selected', type === 'persona');
+  document.getElementById('opt-collection').classList.toggle('selected', type === 'collection');
+  const labels = { persona: 'Persona name', collection: 'Collection name' };
+  document.getElementById('name-label').textContent = labels[type];
+  const placeholders = { persona: 'e.g. Gala Grandeur', collection: 'e.g. Lumiere · Qween of Eden' };
+  document.getElementById('setup-name').placeholder = placeholders[type];
+  document.getElementById('setup-name').focus();
+  checkSetupReady();
+}
+
+function checkSetupReady() {
+  const ready = selectedType && document.getElementById('setup-name').value.trim().length > 0;
+  document.getElementById('setup-btn').disabled = !ready;
+}
+
+async function startBrief() {
+  const name = document.getElementById('setup-name').value.trim();
+  const type = selectedType;
+  currentBriefId = crypto.randomUUID();
+  await saveBrief(type, name);
+  await loadBriefs();
+  openBrief(type, name, currentBriefId);
+}
+
+function goBack() {
+  showScreen('home-screen');
+}
+
+document.getElementById('setup-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('setup-btn').disabled) startBrief();
+});
+
+// ── Setup screen "back" link ────────────────────────────
+document.getElementById('setup-screen').addEventListener('click', e => {
+  if (e.target.id === 'setup-back') showScreen('home-screen');
+});
+
+// ── Init ────────────────────────────────────────────────
+loadBriefs(); // async — renders grids internally after fetch
+
+// ── Master Prompt ────────────────────────────────────────
+const BRIEF_SECTIONS = [
+  { label: 'Creative Concept',  sbId: 'sb-01', tokens: [] },
+  { label: 'Product Selection', sbId: 'sb-02', tokens: [] },
+  { label: 'Model & Talent',    sbId: 'sb-03', tokens: [] },
+  { label: 'Styling & Wardrobe',sbId: 'sb-04', tokens: [] },
+  { label: 'Set & Environment', sbId: 'sb-05', tokens: [] },
+  { label: 'Deliverable Spec',  sbId: 'sb-06', tokens: [] },
+];
+
+function getTokens(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return [];
+  return Array.from(list.querySelectorAll('.token'))
+    .map(t => t.childNodes[0].textContent.trim())
+    .filter(Boolean);
+}
+
+function getFieldValues(sbId) {
+  const block = document.getElementById(sbId);
+  if (!block) return [];
+  return Array.from(block.querySelectorAll('.field-input, .field-textarea'))
+    .map(el => el.value.trim())
+    .filter(Boolean);
+}
+
+function buildSectionPrompt(sec) {
+  const tokenParts = sec.tokens.flatMap(id => getTokens(id));
+  const fieldParts  = getFieldValues(sec.sbId);
+  const quickParts  = [...getQuickChips(sec.sbId), ...getQuickNotes(sec.sbId)];
+  return [...tokenParts, ...fieldParts, ...quickParts].join(', ');
+}
+
+function generatePrompt() {
+  const list = document.getElementById('prompt-sections-list');
+  list.innerHTML = '';
+
+  const masterLines = [];
+
+  BRIEF_SECTIONS.forEach((sec, i) => {
+    const text = buildSectionPrompt(sec);
+    if (text) masterLines.push(`[${sec.label}]\n${text}`);
+
+    const btnId = `copy-sec-${i}`;
+    const row = document.createElement('div');
+    row.className = 'prompt-row';
+
+    if (text) {
+      row.innerHTML = `
+        <div class="prompt-row-header">
+          <span class="prompt-row-label">${sec.label}</span>
+          <button class="copy-btn-sm" id="${btnId}" onclick="copyText('sec-text-${i}','${btnId}')">Copy</button>
+        </div>
+        <div class="prompt-row-text" id="sec-text-${i}">${escHtml(text)}</div>`;
+    } else {
+      row.innerHTML = `
+        <div class="prompt-row-header">
+          <span class="prompt-row-label">${sec.label}</span>
+        </div>
+        <div class="prompt-row-empty">No inputs filled yet</div>`;
+    }
+    list.appendChild(row);
+  });
+
+  const master = masterLines.join('\n\n');
+  document.getElementById('master-prompt-output').textContent = master || 'Fill in brief fields and tokens, then regenerate.';
+  const mb = document.getElementById('copy-master-btn');
+  mb.textContent = 'Copy all';
+  mb.classList.remove('copied');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openPromptModal() {
+  generatePrompt();
+  document.getElementById('prompt-modal').classList.add('open');
+}
+
+function closePromptModal() {
+  document.getElementById('prompt-modal').classList.remove('open');
+}
+
+function closeOnBackdrop(e) {
+  if (e.target === document.getElementById('prompt-modal')) closePromptModal();
+}
+
+function copyText(sourceId, btnId) {
+  const el = document.getElementById(sourceId);
+  const text = el ? el.textContent : '';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Save / Autosave ──────────────────────────────────────
+let isDirty = false;
+let autosaveTimer = null;
+const AUTOSAVE_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
+function collectBriefData() {
+  const data = { savedAt: new Date().toISOString(), chips: {}, notes: {} };
+  ['sb-01','sb-02','sb-03','sb-04','sb-05','sb-06'].forEach(sbId => {
+    const chipsEl = document.getElementById('quick-chips-' + sbId);
+    if (chipsEl) data.chips[sbId] = Array.from(chipsEl.querySelectorAll('.quick-chip'))
+      .map(c => c.childNodes[0].textContent.trim()).filter(Boolean);
+    const notesEl = document.getElementById('quick-notes-' + sbId);
+    if (notesEl) data.notes[sbId] = notesEl.value;
+  });
+  return data;
+}
+
+function restoreBriefData(data) {
+  if (!data) return;
+  Object.entries(data.chips || {}).forEach(([sbId, chips]) => {
+    const container = document.getElementById('quick-chips-' + sbId);
+    if (!container) return;
+    container.querySelectorAll('.quick-chip').forEach(c => c.remove());
+    chips.forEach(val => {
+      const span = document.createElement('span');
+      span.className = 'quick-chip';
+      span.innerHTML = `${val}<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button>`;
+      container.appendChild(span);
+    });
+  });
+  Object.entries(data.notes || {}).forEach(([sbId, val]) => {
+    const el = document.getElementById('quick-notes-' + sbId);
+    if (el) el.value = val;
+  });
+}
+
+function markDirty() {
+  if (isDirty) return;
+  isDirty = true;
+  document.getElementById('save-dot').classList.add('unsaved');
+  setStatus('Unsaved changes', 'dirty');
+}
+
+function setStatus(msg, state) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  el.className = 'save-status' + (state ? ' ' + state : '');
+}
+
+async function saveToDB(data) {
+  // always keep a local fallback
+  localStorage.setItem(`brief_autosave_${currentBriefType}_${currentBriefName}`, JSON.stringify(data));
+  const { error } = await db.from('shoot_briefs').upsert({
+    id: currentBriefId,
+    type: currentBriefType,
+    name: currentBriefName,
+    data: data,
+    updated_at: data.savedAt,
+  });
+  if (error) throw error;
+}
+
+async function saveNow() {
+  setStatus('Saving…', 'saving');
+  document.getElementById('save-btn').disabled = true;
+  try {
+    const data = collectBriefData();
+    await saveToDB(data);
+    isDirty = false;
+    document.getElementById('save-dot').classList.remove('unsaved');
+    setStatus('Saved just now', 'saved');
+    setTimeout(() => setStatus('All changes saved', ''), 3000);
+  } catch (e) {
+    setStatus('Save failed — retry?', 'dirty');
+  } finally {
+    document.getElementById('save-btn').disabled = false;
+  }
+}
+
+function startAutosave() {
+  clearInterval(autosaveTimer);
+  autosaveTimer = setInterval(() => { if (isDirty) saveNow(); }, AUTOSAVE_INTERVAL);
+}
+
+function watchForChanges() {
+  document.getElementById('brief-screen').addEventListener('input', markDirty);
+  document.getElementById('brief-screen').addEventListener('click', e => {
+    if (e.target.classList.contains('token-remove') ||
+        e.target.classList.contains('token-btn')) markDirty();
+  });
+}
+
+// ── Quick Input Blocks ───────────────────────────────────
+function buildQuickBlock(sbId) {
+  const block = document.createElement('div');
+  block.className = 'quick-block';
+  const uploadId  = `quick-upload-${sbId}`;
+  const previewId = `quick-preview-${sbId}`;
+  const chipsId   = `quick-chips-${sbId}`;
+  const inputId   = `quick-input-${sbId}`;
+  const notesId   = `quick-notes-${sbId}`;
+  block.innerHTML = `
+    <div class="quick-block-header">
+      <span class="quick-block-title">Quick input</span>
+      <span class="quick-block-badge">Simplified</span>
+    </div>
+    <div class="quick-row">
+      <input class="quick-keyword-input" id="${inputId}" type="text" placeholder="Add a keyword…"
+        onkeydown="quickAddOnEnter(event,'${chipsId}','${inputId}')">
+      <button class="quick-add-btn" onclick="quickAdd('${chipsId}','${inputId}')">+ Add</button>
+    </div>
+    <div class="quick-chips" id="${chipsId}"></div>
+    <textarea class="quick-notes" id="${notesId}" rows="2" placeholder="Notes for this section…"></textarea>
+    <div class="quick-img-upload" onclick="document.getElementById('${uploadId}').click()">
+      <input type="file" id="${uploadId}" accept="image/*" multiple onchange="quickHandleImages(event,'${previewId}')">
+      <span class="quick-img-upload-icon">🖼</span>
+      <span class="quick-img-upload-label">Add reference image</span>
+    </div>
+    <div class="quick-img-grid" id="${previewId}"></div>`;
+  return block;
+}
+
+function quickAdd(chipsId, inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  const chips = document.getElementById(chipsId);
+  const chip = document.createElement('span');
+  chip.className = 'quick-chip';
+  chip.innerHTML = `${val}<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button>`;
+  chips.appendChild(chip);
+  input.value = '';
+  markDirty();
+}
+
+function quickAddOnEnter(e, chipsId, inputId) {
+  if (e.key === 'Enter') { e.preventDefault(); quickAdd(chipsId, inputId); }
+}
+
+function quickHandleImages(event, previewId) {
+  const grid = document.getElementById(previewId);
+  Array.from(event.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wrap = document.createElement('div');
+      wrap.className = 'img-thumb-wrap';
+      wrap.innerHTML = `<img class="img-thumb" src="${e.target.result}">
+        <button class="img-thumb-remove" onclick="this.parentElement.remove()">×</button>`;
+      grid.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function getQuickChips(sbId) {
+  const chips = document.getElementById(`quick-chips-${sbId}`);
+  if (!chips) return [];
+  return Array.from(chips.querySelectorAll('.quick-chip'))
+    .map(c => c.childNodes[0].textContent.trim()).filter(Boolean);
+}
+
+function getQuickNotes(sbId) {
+  const el = document.getElementById(`quick-notes-${sbId}`);
+  return el && el.value.trim() ? [el.value.trim()] : [];
+}
+
+function initQuickBlocks() {
+  ['sb-01','sb-02','sb-03','sb-04','sb-05','sb-06'].forEach(id => {
+    const sb = document.getElementById(id);
+    if (!sb) return;
+    const body = sb.querySelector('.section-body');
+    if (body) body.appendChild(buildQuickBlock(id));
+  });
+}
+
+function siAdd(chipsId, inputId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  const chips = document.getElementById(chipsId);
+  const chip = document.createElement('span');
+  chip.className = 'quick-chip';
+  chip.innerHTML = `${val}<button class="quick-chip-remove" onclick="this.parentElement.remove()">×</button>`;
+  chips.appendChild(chip);
+  input.value = '';
+  markDirty();
+}
+function siAddOnEnter(e, chipsId, inputId) {
+  if (e.key === 'Enter') { e.preventDefault(); siAdd(chipsId, inputId); }
+}
+
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.section-chevron');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('open', !isOpen);
+}
+
+function triggerUpload(id) {
+  document.getElementById(id).click();
+}
+
+function handleImages(event, previewId) {
+  const files = event.target.files;
+  const grid = document.getElementById(previewId);
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wrap = document.createElement('div');
+      wrap.className = 'img-thumb-wrap';
+      const img = document.createElement('img');
+      img.className = 'img-thumb';
+      img.src = e.target.result;
+      const btn = document.createElement('button');
+      btn.className = 'img-thumb-remove';
+      btn.textContent = '×';
+      btn.onclick = () => wrap.remove();
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      grid.appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function removeToken(btn) {
+  btn.parentElement.remove();
+}
+
+function addToken(listId, input) {
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.getElementById(listId);
+  const span = document.createElement('span');
+  span.className = 'token';
+  span.innerHTML = val + '<button class="token-remove" onclick="removeToken(this)">×</button>';
+  list.appendChild(span);
+  input.value = '';
+}
+
+function addTokenOnEnter(event, listId) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    addToken(listId, event.target);
+  }
+}
+
+function exportHTML() {
+  const clone = document.documentElement.cloneNode(true);
+  // Embed all preview images as data URIs (already embedded via FileReader)
+  const images = document.querySelectorAll('.img-thumb');
+  const cloneImages = clone.querySelectorAll('.img-thumb');
+  images.forEach((img, i) => {
+    if (cloneImages[i]) cloneImages[i].src = img.src;
+  });
+  // Capture all textarea and input values
+  const inputs = document.querySelectorAll('input[type=text], textarea');
+  const cloneInputs = clone.querySelectorAll('input[type=text], textarea');
+  inputs.forEach((el, i) => {
+    if (cloneInputs[i]) {
+      if (el.tagName === 'TEXTAREA') {
+        cloneInputs[i].textContent = el.value;
+      } else {
+        cloneInputs[i].setAttribute('value', el.value);
+      }
+    }
+  });
+  const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jewellery-ai-shoot-brief.html';
+  a.click();
+}
+</script>
+</body>
+</html>
