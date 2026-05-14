@@ -1262,7 +1262,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Reference images</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-01').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-01" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-01')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1308,7 +1308,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Product macro photos</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-02').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-02" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-02')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1356,7 +1356,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Casting / face references</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-03').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-03" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-03')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1403,7 +1403,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Wardrobe / prop references</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-04').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-04" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-04')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1453,7 +1453,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Location / lighting references</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-05').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-05" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-05')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1494,7 +1494,7 @@
         </div>
         <div class="si-field">
           <label class="si-label">Reference / example outputs</label>
-          <div class="si-upload" onclick="document.getElementById('si-img-sb-06').click()">
+          <div class="si-upload">
             <input type="file" id="si-img-sb-06" accept="image/*" multiple onchange="quickHandleImages(event,'si-prev-sb-06')">
             <span>🖼</span>
             <span class="si-upload-label">Add images</span>
@@ -1928,7 +1928,7 @@ function setStatus(msg, state) {
 }
 
 async function saveToDB(data) {
-  // always keep a local fallback
+  if (!currentBriefId) currentBriefId = crypto.randomUUID();
   localStorage.setItem(`brief_autosave_${currentBriefType}_${currentBriefName}`, JSON.stringify(data));
   const { error } = await db.from('shoot_briefs').upsert({
     id: currentBriefId,
