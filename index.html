@@ -906,6 +906,45 @@
   }
   .brief-card-arrow { font-size: 16px; color: #d1d5db; }
   .brief-card:hover .brief-card-arrow { color: #7c5cfc; }
+  .card-delete-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: transparent; border: none; cursor: pointer;
+    font-size: 13px; color: #d1d5db;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
+    z-index: 2;
+  }
+  .brief-card:hover .card-delete-btn { opacity: 1; }
+  .card-delete-btn:hover { background: #fee2e2; color: #ef4444; }
+
+  /* Undo toast */
+  .undo-toast {
+    position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: #1f2937; color: #fff;
+    padding: 12px 18px; border-radius: 12px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    z-index: 9998; transition: transform 0.25s ease;
+    white-space: nowrap;
+  }
+  .undo-toast.visible { transform: translateX(-50%) translateY(0); }
+  .undo-btn {
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    background: #7c5cfc; color: #fff; border: none;
+    padding: 5px 14px; border-radius: 20px; cursor: pointer;
+    transition: background 0.12s;
+  }
+  .undo-btn:hover { background: #6d4fe8; }
+  .undo-bar {
+    width: 60px; height: 3px; background: rgba(255,255,255,0.2);
+    border-radius: 2px; overflow: hidden;
+  }
+  .undo-bar-fill {
+    height: 100%; background: #7c5cfc; width: 100%;
+    transition: width linear;
+  }
 
   .new-brief-card {
     background: transparent;
@@ -1643,7 +1682,7 @@ const SEED_DATA = {
 
 async function loadBriefs() {
   try {
-    const { data, error } = await db.from('shoot_briefs').select('id, type, name');
+    const { data, error } = await db.from('shoot_briefs').select('id, type, name').is('deleted_at', null);
     if (error) throw error;
     (data || []).forEach(b => {
       const list = SEED_DATA[b.type];
@@ -1716,6 +1755,14 @@ function renderGrid(type) {
         <span class="brief-card-count">${item.briefs} brief${item.briefs !== 1 ? 's' : ''}</span>
         <span class="brief-card-arrow">›</span>
       </div>`;
+    if (item.id) {
+      const del = document.createElement('button');
+      del.className = 'card-delete-btn';
+      del.title = 'Delete brief';
+      del.textContent = '🗑';
+      del.onclick = e => { e.stopPropagation(); softDelete(item.id, type, item.name, card); };
+      card.appendChild(del);
+    }
     grid.appendChild(card);
   });
   // New brief card
@@ -2106,6 +2153,52 @@ function makeThumbWrap(src, name) {
   return wrap;
 }
 
+// ── Soft delete + undo ───────────────────────────────────
+let undoTimer = null;
+let pendingDeleteId = null;
+
+async function softDelete(id, type, name, cardEl) {
+  // Mark deleted in Supabase immediately
+  await db.from('shoot_briefs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  // Hide card
+  cardEl.style.transition = 'opacity 0.2s, transform 0.2s';
+  cardEl.style.opacity = '0'; cardEl.style.transform = 'scale(0.95)';
+  setTimeout(() => cardEl.style.display = 'none', 200);
+  // Remove from local SEED_DATA
+  const list = SEED_DATA[type];
+  const idx = list.findIndex(i => i.id === id);
+  const removed = idx > -1 ? list.splice(idx, 1)[0] : null;
+  pendingDeleteId = id;
+  // Show undo toast
+  document.getElementById('undo-msg').textContent = `"${name}" deleted`;
+  document.getElementById('undo-btn').onclick = async () => {
+    clearTimeout(undoTimer);
+    hideToast();
+    await db.from('shoot_briefs').update({ deleted_at: null }).eq('id', id);
+    if (removed) { list.push(removed); list.sort((a,b) => a.name.localeCompare(b.name)); }
+    renderGrid(type);
+  };
+  showToast(5000);
+}
+
+function showToast(duration) {
+  clearTimeout(undoTimer);
+  const toast = document.getElementById('undo-toast');
+  const fill  = document.getElementById('undo-bar-fill');
+  toast.classList.add('visible');
+  fill.style.transition = 'none'; fill.style.width = '100%';
+  requestAnimationFrame(() => {
+    fill.style.transition = `width ${duration}ms linear`;
+    fill.style.width = '0%';
+  });
+  undoTimer = setTimeout(hideToast, duration);
+}
+
+function hideToast() {
+  document.getElementById('undo-toast').classList.remove('visible');
+  pendingDeleteId = null;
+}
+
 function openLightbox(src, name) {
   document.getElementById('lightbox-img').src = src;
   const dl = document.getElementById('lightbox-dl');
@@ -2257,7 +2350,13 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.5 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.6 · 15 May</div>
+
+<div class="undo-toast" id="undo-toast">
+  <span id="undo-msg">Brief deleted</span>
+  <button class="undo-btn" id="undo-btn">Undo</button>
+  <div class="undo-bar"><div class="undo-bar-fill" id="undo-bar-fill"></div></div>
+</div>
 
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
