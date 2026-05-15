@@ -2039,16 +2039,11 @@ const SEED_DATA = {
 
 async function loadBriefs() {
   try {
-    // Try with soft-delete filter first; fall back to unfiltered if column doesn't exist yet
-    let { data, error } = await db.from('shoot_briefs').select('id, type, name, assigned_to').is('deleted_at', null);
+    let { data, error } = await db.from('shoot_briefs').select('id, type, name, assigned_to');
     if (error) {
-      // Fall back: try without deleted_at filter, or without assigned_to column
-      const r2 = await db.from('shoot_briefs').select('id, type, name, assigned_to');
-      if (r2.error) {
-        const r3 = await db.from('shoot_briefs').select('id, type, name');
-        if (r3.error) throw r3.error;
-        data = r3.data;
-      } else { data = r2.data; }
+      const r2 = await db.from('shoot_briefs').select('id, type, name');
+      if (r2.error) throw r2.error;
+      data = r2.data;
     }
     // Reset SEED_DATA so deleted/stale items don't persist across reloads
     SEED_DATA.persona = [];
@@ -2831,27 +2826,31 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
 });
 
-// ── Soft delete + undo ───────────────────────────────────
+// ── Delete + undo ────────────────────────────────────────
 let undoTimer = null;
-let pendingDeleteId = null;
 
 async function softDelete(id, type, name, cardEl) {
-  if (id) await db.from('shoot_briefs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  // Hard-delete from Supabase (works even without deleted_at column)
+  let deletedRow = null;
+  if (id) {
+    const { data } = await db.from('shoot_briefs').select('*').eq('id', id).single();
+    deletedRow = data;
+    await db.from('shoot_briefs').delete().eq('id', id);
+  }
   // Hide card
   cardEl.style.transition = 'opacity 0.2s, transform 0.2s';
   cardEl.style.opacity = '0'; cardEl.style.transform = 'scale(0.95)';
   setTimeout(() => cardEl.style.display = 'none', 200);
   // Remove from local SEED_DATA
   const list = SEED_DATA[type];
-  const idx = list.findIndex(i => i.id === id);
+  const idx = list.findIndex(i => i.name === name);
   const removed = idx > -1 ? list.splice(idx, 1)[0] : null;
-  pendingDeleteId = id;
   // Show undo toast
   document.getElementById('undo-msg').textContent = `"${name}" deleted`;
   document.getElementById('undo-btn').onclick = async () => {
     clearTimeout(undoTimer);
     hideToast();
-    await db.from('shoot_briefs').update({ deleted_at: null }).eq('id', id);
+    if (deletedRow) await db.from('shoot_briefs').upsert(deletedRow);
     if (removed) { list.push(removed); list.sort((a,b) => a.name.localeCompare(b.name)); }
     renderGrid(type);
   };
@@ -3045,7 +3044,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.2.0 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.2.1 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
