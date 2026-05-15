@@ -1682,18 +1682,19 @@ const SEED_DATA = {
 
 async function loadBriefs() {
   try {
-    const { data, error } = await db.from('shoot_briefs').select('id, type, name').is('deleted_at', null);
-    if (error) throw error;
+    // Try with soft-delete filter first; fall back to unfiltered if column doesn't exist yet
+    let { data, error } = await db.from('shoot_briefs').select('id, type, name').is('deleted_at', null);
+    if (error) {
+      const res = await db.from('shoot_briefs').select('id, type, name');
+      if (res.error) throw res.error;
+      data = res.data;
+    }
     (data || []).forEach(b => {
       const list = SEED_DATA[b.type];
       if (!list) return;
       const existing = list.find(i => i.name === b.name);
-      if (existing) {
-        existing.id = b.id;
-        existing.briefs = 1;
-      } else {
-        list.push({ name: b.name, sub: 'Custom', briefs: 1, id: b.id });
-      }
+      if (existing) { existing.id = b.id; existing.briefs = 1; }
+      else list.push({ name: b.name, sub: 'Custom', briefs: 1, id: b.id });
     });
   } catch (e) {
     const saved = JSON.parse(localStorage.getItem('shoot_briefs') || '[]');
@@ -1851,6 +1852,7 @@ async function startBrief() {
 
 function goBack() {
   showScreen('home-screen');
+  loadBriefs();
 }
 
 document.getElementById('setup-name').addEventListener('keydown', e => {
@@ -2350,7 +2352,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.6 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.7 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
