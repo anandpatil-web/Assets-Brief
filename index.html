@@ -1140,6 +1140,112 @@
   /* BRIEF (hidden until setup done) */
   #setup-screen { display: none; }
   #brief-screen { display: none; }
+  #settings-screen { display: none; }
+
+  /* SETTINGS SCREEN */
+  #settings-screen {
+    min-height: 100vh;
+    padding: 48px 80px 60px;
+  }
+  @media (max-width: 768px) { #settings-screen { padding: 32px 20px 60px; } }
+  .settings-header { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+  .settings-back {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; font-weight: 600; color: #9ca3af; font-family: inherit;
+    display: flex; align-items: center; gap: 4px; transition: color 0.12s;
+    padding: 0;
+  }
+  .settings-back:hover { color: #7c5cfc; }
+  .settings-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; color: #111827; }
+  .settings-section {
+    background: #fff; border: 1px solid #ebebf5; border-radius: 16px;
+    padding: 24px 24px 20px; max-width: 520px;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.06);
+    margin-bottom: 20px;
+  }
+  .settings-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: #9ca3af; margin-bottom: 16px;
+  }
+  .member-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .member-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; background: #fafafa; border: 1px solid #f0f0f8;
+    border-radius: 10px;
+  }
+  .member-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #f5f3ff; color: #7c5cfc;
+    font-size: 11px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .member-name { font-size: 13px; font-weight: 600; color: #111827; flex: 1; margin-left: 10px; }
+  .member-remove {
+    background: none; border: none; cursor: pointer;
+    font-size: 14px; color: #d1d5db; transition: color 0.12s; padding: 2px 6px;
+  }
+  .member-remove:hover { color: #ef4444; }
+  .add-member-row { display: flex; gap: 8px; }
+  .add-member-input {
+    flex: 1; font-family: inherit; font-size: 13px; color: #374151;
+    background: #fafafa; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 9px 12px; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .add-member-input:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .add-member-input::placeholder { color: #d1d5db; }
+  .add-member-btn {
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    padding: 9px 16px; background: #7c5cfc; color: #fff;
+    border: none; border-radius: 10px; cursor: pointer; white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .add-member-btn:hover { background: #6d4fe8; }
+
+  /* ASSIGN SECTION in setup */
+  .assign-section { margin-bottom: 24px; }
+  .assign-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .assign-pill {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 12px 6px 8px; border-radius: 30px;
+    border: 1.5px solid #e5e7eb; background: #fafafa;
+    font-family: inherit; font-size: 12px; font-weight: 600; color: #6b7280;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .assign-pill:hover { border-color: #c4b5fd; background: #f5f3ff; color: #7c5cfc; }
+  .assign-pill.selected { border-color: #7c5cfc; background: #f5f3ff; color: #7c5cfc; }
+  .assign-pill-avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #ede9fe; color: #7c5cfc;
+    font-size: 9px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .assign-pill.selected .assign-pill-avatar { background: #7c5cfc; color: #fff; }
+
+  /* CARD ASSIGNEE */
+  .card-assignee {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid #f5f5ff;
+  }
+  .card-assignee-avatar {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #f5f3ff; color: #7c5cfc;
+    font-size: 9px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-assignee-name { font-size: 11px; font-weight: 600; color: #9ca3af; }
+
+  /* SETTINGS ICON BTN */
+  .settings-icon-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #fff; border: 1px solid #e5e7eb;
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.08);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .settings-icon-btn:hover { border-color: #c4b5fd; box-shadow: 0 2px 8px rgba(124,92,252,0.15); }
 
   /* Breadcrumb chip in header */
   .header-context-chip {
@@ -1242,7 +1348,10 @@
       <div class="home-title">Shoot Briefs</div>
       <div class="home-sub">AI image production briefs by persona &amp; collection</div>
     </div>
-    <button class="btn btn-primary" onclick="showSetup()">+ New Brief</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="settings-icon-btn" onclick="showSettings()" title="Settings">⚙️</button>
+      <button class="btn btn-primary" onclick="showSetup()">+ New Brief</button>
+    </div>
   </div>
 
   <div class="home-tabs">
@@ -1285,7 +1394,29 @@
     <label class="setup-name-label" id="name-label">Name</label>
     <input class="setup-name-input" id="setup-name" type="text" placeholder="e.g. Gala Grandeur" oninput="checkSetupReady()">
 
+    <div class="assign-section">
+      <span class="setup-name-label">Assign to</span>
+      <div class="assign-pills" id="assign-pills"></div>
+    </div>
+
     <button class="setup-continue" id="setup-btn" disabled onclick="startBrief()">Continue →</button>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div id="settings-screen">
+  <div class="settings-header">
+    <button class="settings-back" onclick="showScreen('home-screen')">← Back</button>
+    <div class="settings-title">Settings</div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">Team members</div>
+    <div class="member-list" id="member-list"></div>
+    <div class="add-member-row">
+      <input class="add-member-input" id="add-member-input" type="text" placeholder="Add a name…"
+        onkeydown="if(event.key==='Enter')addTeamMember()">
+      <button class="add-member-btn" onclick="addTeamMember()">+ Add</button>
+    </div>
   </div>
 </div>
 
@@ -1695,18 +1826,22 @@ const SEED_DATA = {
 async function loadBriefs() {
   try {
     // Try with soft-delete filter first; fall back to unfiltered if column doesn't exist yet
-    let { data, error } = await db.from('shoot_briefs').select('id, type, name').is('deleted_at', null);
+    let { data, error } = await db.from('shoot_briefs').select('id, type, name, assigned_to').is('deleted_at', null);
     if (error) {
-      const res = await db.from('shoot_briefs').select('id, type, name');
-      if (res.error) throw res.error;
-      data = res.data;
+      // Fall back: try without deleted_at filter, or without assigned_to column
+      const r2 = await db.from('shoot_briefs').select('id, type, name, assigned_to');
+      if (r2.error) {
+        const r3 = await db.from('shoot_briefs').select('id, type, name');
+        if (r3.error) throw r3.error;
+        data = r3.data;
+      } else { data = r2.data; }
     }
     (data || []).forEach(b => {
       const list = SEED_DATA[b.type];
       if (!list) return;
       const existing = list.find(i => i.name === b.name);
-      if (existing) { existing.id = b.id; existing.briefs = 1; }
-      else list.push({ name: b.name, sub: 'Custom', briefs: 1, id: b.id });
+      if (existing) { existing.id = b.id; existing.briefs = 1; existing.assignedTo = b.assigned_to; }
+      else list.push({ name: b.name, sub: 'Custom', briefs: 1, id: b.id, assignedTo: b.assigned_to });
     });
   } catch (e) {
     const saved = JSON.parse(localStorage.getItem('shoot_briefs') || '[]');
@@ -1720,20 +1855,21 @@ async function loadBriefs() {
   renderGrid('collection');
 }
 
-async function saveBrief(type, name) {
+async function saveBrief(type, name, assignedTo) {
   currentBriefId   = currentBriefId || crypto.randomUUID();
   currentBriefType = type;
   currentBriefName = name;
   try {
     const { error } = await db.from('shoot_briefs').upsert({
       id: currentBriefId, type, name,
+      assigned_to: assignedTo || null,
       data: {}, updated_at: new Date().toISOString(),
     });
     if (error) throw error;
   } catch (e) {
     const saved = JSON.parse(localStorage.getItem('shoot_briefs') || '[]');
     if (!saved.find(b => b.type === type && b.name === name)) {
-      saved.push({ type, name });
+      saved.push({ type, name, assigned_to: assignedTo || null });
       localStorage.setItem('shoot_briefs', JSON.stringify(saved));
     }
   }
@@ -1741,12 +1877,11 @@ async function saveBrief(type, name) {
 
 // ── Screen switching ────────────────────────────────────
 function showScreen(id) {
-  ['home-screen','setup-screen','brief-screen'].forEach(s => {
-    const el = document.getElementById(s);
-    el.style.display = 'none';
+  ['home-screen','setup-screen','brief-screen','settings-screen'].forEach(s => {
+    document.getElementById(s).style.display = 'none';
   });
   const target = document.getElementById(id);
-  target.style.display = id === 'setup-screen' ? 'flex' : (id === 'home-screen' ? 'block' : 'block');
+  target.style.display = id === 'setup-screen' ? 'flex' : 'block';
   window.scrollTo(0, 0);
 }
 
@@ -1760,6 +1895,11 @@ function renderGrid(type) {
     const card = document.createElement('div');
     card.className = 'brief-card';
     card.onclick = () => openBrief(type, item.name, item.id || null);
+    const assigneeHtml = item.assignedTo ? `
+      <div class="card-assignee">
+        <div class="card-assignee-avatar">${initials(item.assignedTo)}</div>
+        <span class="card-assignee-name">${item.assignedTo}</span>
+      </div>` : '';
     card.innerHTML = `
       <span class="brief-card-icon">${type === 'persona' ? '👤' : '💎'}</span>
       <div class="brief-card-name">${item.name}</div>
@@ -1767,7 +1907,8 @@ function renderGrid(type) {
       <div class="brief-card-meta">
         <span class="brief-card-count">${item.briefs} brief${item.briefs !== 1 ? 's' : ''}</span>
         <span class="brief-card-arrow">›</span>
-      </div>`;
+      </div>
+      ${assigneeHtml}`;
     if (item.id) {
       const wrap = document.createElement('div');
       wrap.className = 'card-menu-wrap';
@@ -1835,11 +1976,13 @@ let selectedType = null;
 
 function showSetup(preselect) {
   selectedType = null;
+  selectedAssignee = null;
   document.getElementById('opt-persona').classList.remove('selected');
   document.getElementById('opt-collection').classList.remove('selected');
   document.getElementById('setup-name').value = '';
   document.getElementById('setup-btn').disabled = true;
   showScreen('setup-screen');
+  renderAssignPills();
   if (preselect) selectType(preselect);
 }
 
@@ -1864,7 +2007,7 @@ async function startBrief() {
   const name = document.getElementById('setup-name').value.trim();
   const type = selectedType;
   currentBriefId = crypto.randomUUID();
-  await saveBrief(type, name);
+  await saveBrief(type, name, selectedAssignee);
   await loadBriefs();
   openBrief(type, name, currentBriefId);
 }
@@ -1884,7 +2027,100 @@ document.getElementById('setup-screen').addEventListener('click', e => {
 });
 
 // ── Init ────────────────────────────────────────────────
+// ── Team Members ─────────────────────────────────────────
+let teamMembers = [];
+let selectedAssignee = null;
+
+async function loadTeamMembers() {
+  try {
+    const { data, error } = await db.from('team_members').select('id, name').order('created_at');
+    if (error) throw error;
+    teamMembers = data || [];
+  } catch (e) {
+    teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+  }
+}
+
+async function addTeamMember() {
+  const input = document.getElementById('add-member-input');
+  const name = input.value.trim();
+  if (!name) return;
+  input.value = '';
+  const id = crypto.randomUUID();
+  const member = { id, name };
+  try {
+    const { error } = await db.from('team_members').insert({ id, name });
+    if (error) throw error;
+  } catch (e) {
+    const saved = JSON.parse(localStorage.getItem('team_members') || '[]');
+    saved.push(member);
+    localStorage.setItem('team_members', JSON.stringify(saved));
+  }
+  teamMembers.push(member);
+  renderSettingsMembers();
+  renderAssignPills();
+}
+
+async function removeTeamMember(id) {
+  try {
+    await db.from('team_members').delete().eq('id', id);
+  } catch (e) {}
+  teamMembers = teamMembers.filter(m => m.id !== id);
+  if (selectedAssignee === teamMembers.find(m => m.id === id)?.name) selectedAssignee = null;
+  renderSettingsMembers();
+  renderAssignPills();
+}
+
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function renderSettingsMembers() {
+  const list = document.getElementById('member-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!teamMembers.length) {
+    list.innerHTML = '<div style="font-size:12px;color:#9ca3af;padding:4px 0;">No team members yet.</div>';
+    return;
+  }
+  teamMembers.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.innerHTML = `
+      <div class="member-avatar">${initials(m.name)}</div>
+      <span class="member-name">${m.name}</span>
+      <button class="member-remove" onclick="removeTeamMember('${m.id}')">×</button>`;
+    list.appendChild(row);
+  });
+}
+
+function renderAssignPills() {
+  const container = document.getElementById('assign-pills');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!teamMembers.length) {
+    container.innerHTML = '<span style="font-size:11px;color:#d1d5db;">No team members — add them in Settings ⚙️</span>';
+    return;
+  }
+  teamMembers.forEach(m => {
+    const pill = document.createElement('button');
+    pill.className = 'assign-pill' + (selectedAssignee === m.name ? ' selected' : '');
+    pill.innerHTML = `<span class="assign-pill-avatar">${initials(m.name)}</span>${m.name}`;
+    pill.onclick = () => {
+      selectedAssignee = selectedAssignee === m.name ? null : m.name;
+      renderAssignPills();
+    };
+    container.appendChild(pill);
+  });
+}
+
+function showSettings() {
+  showScreen('settings-screen');
+  renderSettingsMembers();
+}
+
 loadBriefs(); // async — renders grids internally after fetch
+loadTeamMembers();
 
 // ── Master Prompt ────────────────────────────────────────
 const BRIEF_SECTIONS = [
@@ -2382,7 +2618,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.8 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.9 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
