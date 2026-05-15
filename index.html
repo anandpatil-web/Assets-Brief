@@ -935,6 +935,14 @@
   .card-dropdown-item.danger:hover { background: #fef2f2; }
   .card-dropdown-divider { height: 1px; background: #f0f0f8; margin: 4px 0; }
   .card-dropdown-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #c4c4d4; padding: 6px 14px 2px; }
+  .card-dropdown-confirm { padding: 12px 14px; }
+  .card-dropdown-confirm-msg { font-size: 12px; color: #374151; margin-bottom: 10px; }
+  .card-dropdown-confirm-msg strong { color: #111827; }
+  .card-dropdown-confirm-actions { display: flex; gap: 6px; }
+  .card-dropdown-confirm-cancel { flex: 1; padding: 6px 0; border: 1px solid #e5e7eb; border-radius: 7px; background: #fff; font-size: 12px; font-weight: 600; color: #6b7280; cursor: pointer; font-family: inherit; }
+  .card-dropdown-confirm-cancel:hover { background: #f9fafb; }
+  .card-dropdown-confirm-yes { flex: 1; padding: 6px 0; border: none; border-radius: 7px; background: #ef4444; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; font-family: inherit; }
+  .card-dropdown-confirm-yes:hover { background: #dc2626; }
   .card-assignee-pill {
     display: flex; align-items: center; gap: 7px;
     width: 100%; padding: 7px 14px; background: none; border: none;
@@ -2065,7 +2073,6 @@ function renderGrid(type) {
     dropdown.dataset.name = item.name;
     dropdown.dataset.assignedTo = item.assignedTo || '';
     rebuildCardDropdown(dropdown);
-    dropdown.querySelector('.do-delete').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id || null, type, item.name, card); };
     wrap.appendChild(btn);
     wrap.appendChild(dropdown);
     card.appendChild(wrap);
@@ -2597,6 +2604,25 @@ function rebuildCardDropdown(dropdown) {
       await assignCard(dropdown.dataset.id, dropdown.dataset.type, dropdown.dataset.name, name, dropdown);
     };
   });
+  dropdown.querySelector('.do-delete').onclick = e => {
+    e.stopPropagation();
+    const itemName = dropdown.dataset.name;
+    dropdown.innerHTML = `
+      <div class="card-dropdown-confirm">
+        <div class="card-dropdown-confirm-msg">Delete <strong>${itemName}</strong>?</div>
+        <div class="card-dropdown-confirm-actions">
+          <button class="card-dropdown-confirm-cancel">Cancel</button>
+          <button class="card-dropdown-confirm-yes">Delete</button>
+        </div>
+      </div>`;
+    dropdown.querySelector('.card-dropdown-confirm-cancel').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); rebuildCardDropdown(dropdown); };
+    dropdown.querySelector('.card-dropdown-confirm-yes').onclick = e => {
+      e.stopPropagation();
+      dropdown.classList.remove('open');
+      const card = dropdown.closest('.brief-card');
+      softDelete(dropdown.dataset.id || null, dropdown.dataset.type, itemName, card);
+    };
+  };
 }
 
 async function assignCard(id, type, name, assigneeName, dropdown) {
