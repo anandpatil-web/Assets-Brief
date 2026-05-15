@@ -929,6 +929,23 @@
   }
   .card-dropdown-item.danger { color: #ef4444; }
   .card-dropdown-item.danger:hover { background: #fef2f2; }
+  .card-dropdown-divider { height: 1px; background: #f0f0f8; margin: 4px 0; }
+  .card-dropdown-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #c4c4d4; padding: 6px 14px 2px; }
+  .card-assignee-pill {
+    display: flex; align-items: center; gap: 7px;
+    width: 100%; padding: 7px 14px; background: none; border: none;
+    font-family: inherit; font-size: 12px; font-weight: 600; color: #374151;
+    cursor: pointer; transition: background 0.12s; text-align: left;
+  }
+  .card-assignee-pill:hover { background: #f5f3ff; color: #7c5cfc; }
+  .card-assignee-pill.active { color: #7c5cfc; }
+  .card-assignee-pill .pill-av {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #ede9fe; color: #7c5cfc;
+    font-size: 8px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .card-assignee-pill.active .pill-av { background: #7c5cfc; color: #fff; }
 
   /* Undo toast */
   .undo-toast {
@@ -1918,8 +1935,12 @@ function renderGrid(type) {
       btn.onclick = e => { e.stopPropagation(); toggleCardMenu(wrap); };
       const dropdown = document.createElement('div');
       dropdown.className = 'card-dropdown';
-      dropdown.innerHTML = `<button class="card-dropdown-item danger">🗑 Delete</button>`;
-      dropdown.querySelector('button').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id, type, item.name, card); };
+      dropdown.dataset.id = item.id;
+      dropdown.dataset.type = type;
+      dropdown.dataset.name = item.name;
+      dropdown.dataset.assignedTo = item.assignedTo || '';
+      rebuildCardDropdown(dropdown);
+      dropdown.querySelector('.do-delete').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id, type, item.name, card); };
       wrap.appendChild(btn);
       wrap.appendChild(dropdown);
       card.appendChild(wrap);
@@ -2411,11 +2432,52 @@ function makeThumbWrap(src, name) {
 }
 
 // ── Card 3-dot menu ─────────────────────────────────────
+function rebuildCardDropdown(dropdown) {
+  const current = dropdown.dataset.assignedTo || '';
+  let html = '<div class="card-dropdown-label">Assign to</div>';
+  if (teamMembers.length) {
+    teamMembers.forEach(m => {
+      const active = current === m.name ? ' active' : '';
+      html += `<button class="card-assignee-pill${active}" data-member="${m.name}">
+        <span class="pill-av">${initials(m.name)}</span>${m.name}
+        ${active ? '✓' : ''}
+      </button>`;
+    });
+    if (current) html += `<button class="card-assignee-pill" data-member="">
+      <span class="pill-av" style="background:#f3f4f6;color:#9ca3af">×</span>Unassign
+    </button>`;
+  } else {
+    html += '<div style="font-size:11px;color:#d1d5db;padding:4px 14px 8px;">Add members in Settings ⚙️</div>';
+  }
+  html += '<div class="card-dropdown-divider"></div>';
+  html += '<button class="card-dropdown-item danger do-delete">🗑 Delete</button>';
+  dropdown.innerHTML = html;
+  dropdown.querySelectorAll('.card-assignee-pill').forEach(btn => {
+    btn.onclick = async e => {
+      e.stopPropagation();
+      const name = btn.dataset.member;
+      await assignCard(dropdown.dataset.id, dropdown.dataset.type, dropdown.dataset.name, name, dropdown);
+    };
+  });
+}
+
+async function assignCard(id, type, name, assigneeName, dropdown) {
+  dropdown.dataset.assignedTo = assigneeName;
+  dropdown.classList.remove('open');
+  try {
+    await db.from('shoot_briefs').update({ assigned_to: assigneeName || null }).eq('id', id);
+  } catch (e) {}
+  // Update local SEED_DATA so card re-renders immediately
+  const item = SEED_DATA[type]?.find(i => i.id === id);
+  if (item) item.assignedTo = assigneeName || null;
+  renderGrid(type);
+}
+
 function toggleCardMenu(wrap) {
   const dropdown = wrap.querySelector('.card-dropdown');
   const isOpen = dropdown.classList.contains('open');
   document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
-  if (!isOpen) dropdown.classList.add('open');
+  if (!isOpen) { rebuildCardDropdown(dropdown); dropdown.classList.add('open'); }
 }
 document.addEventListener('click', () => {
   document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
@@ -2618,7 +2680,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.9 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.0 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
