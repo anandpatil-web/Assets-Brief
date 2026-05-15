@@ -1055,10 +1055,44 @@
   }
   .setup-options {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
     margin-bottom: 24px;
   }
+  /* Other-type extra fields */
+  .other-fields { display: none; margin-bottom: 20px; }
+  .other-fields.visible { display: flex; flex-direction: column; gap: 12px; }
+  .other-field-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: #9ca3af; display: block; margin-bottom: 5px;
+  }
+  .other-textarea {
+    width: 100%; font-family: inherit; font-size: 13px; color: #374151;
+    background: #fafafa; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 10px 14px; resize: none; line-height: 1.6;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .other-textarea:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .other-textarea::placeholder { color: #d1d5db; }
+  .other-link-input {
+    width: 100%; font-family: inherit; font-size: 13px; color: #374151;
+    background: #fafafa; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 10px 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .other-link-input:focus { outline: none; border-color: #7c5cfc; box-shadow: 0 0 0 3px rgba(124,92,252,0.12); }
+  .other-link-input::placeholder { color: #d1d5db; }
+  .other-img-upload {
+    border: 1.5px dashed #e5e7eb; border-radius: 10px;
+    padding: 12px 16px; cursor: pointer; position: relative;
+    display: flex; align-items: center; gap: 10px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .other-img-upload:hover { border-color: #7c5cfc; background: rgba(124,92,252,0.03); }
+  .other-img-upload input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .other-img-upload-label { font-size: 12px; font-weight: 600; color: #9ca3af; }
+  .other-img-upload:hover .other-img-upload-label { color: #7c5cfc; }
+  .other-img-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .setup-option {
     border: 2px solid #e5e7eb;
     border-radius: 12px;
@@ -1374,6 +1408,7 @@
   <div class="home-tabs">
     <button class="home-tab active" id="tab-persona" onclick="switchTab('persona')">👤 Personas</button>
     <button class="home-tab" id="tab-collection" onclick="switchTab('collection')">💎 Collections</button>
+    <button class="home-tab" id="tab-other" onclick="switchTab('other')">📌 Other</button>
   </div>
 
   <div id="home-grid-persona">
@@ -1381,6 +1416,9 @@
   </div>
   <div id="home-grid-collection" style="display:none">
     <div class="home-grid" id="grid-collection"></div>
+  </div>
+  <div id="home-grid-other" style="display:none">
+    <div class="home-grid" id="grid-other"></div>
   </div>
 </div>
 
@@ -1406,10 +1444,37 @@
         <div class="setup-option-desc">A product line or seasonal campaign</div>
         <span class="check"><svg class="check-svg" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></span>
       </button>
+      <button class="setup-option" id="opt-other" onclick="selectType('other')">
+        <span class="setup-option-icon">📌</span>
+        <div class="setup-option-name">Other</div>
+        <div class="setup-option-desc">A feature, widget, page or task</div>
+        <span class="check"><svg class="check-svg" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></span>
+      </button>
     </div>
 
     <label class="setup-name-label" id="name-label">Name</label>
     <input class="setup-name-input" id="setup-name" type="text" placeholder="e.g. Gala Grandeur" oninput="checkSetupReady()">
+
+    <!-- Extra fields shown only for "Other" type -->
+    <div class="other-fields" id="other-fields">
+      <div>
+        <span class="other-field-label">Description</span>
+        <textarea class="other-textarea" id="other-desc" rows="3" placeholder="What is this for? e.g. Homepage hero banner redesign…"></textarea>
+      </div>
+      <div>
+        <span class="other-field-label">Reference image</span>
+        <div class="other-img-upload">
+          <input type="file" id="other-img-input" accept="image/*" onchange="handleOtherImage(event)">
+          <span>🖼</span>
+          <span class="other-img-upload-label">Add reference image</span>
+        </div>
+        <div class="other-img-preview" id="other-img-preview"></div>
+      </div>
+      <div>
+        <span class="other-field-label">Link</span>
+        <input class="other-link-input" id="other-link" type="url" placeholder="https://…">
+      </div>
+    </div>
 
     <div class="assign-section">
       <span class="setup-name-label">Assign to</span>
@@ -1837,7 +1902,8 @@ const SEED_DATA = {
     { name: 'Confetti',         sub: 'Paris at Midnight',  briefs: 0 },
     { name: 'Wolf',             sub: 'Pride',              briefs: 0 },
     { name: 'Discoball',        sub: 'Party Girl',         briefs: 0 },
-  ]
+  ],
+  other: []
 };
 
 async function loadBriefs() {
@@ -1870,9 +1936,10 @@ async function loadBriefs() {
   }
   renderGrid('persona');
   renderGrid('collection');
+  renderGrid('other');
 }
 
-async function saveBrief(type, name, assignedTo) {
+async function saveBrief(type, name, assignedTo, otherMeta) {
   currentBriefId   = currentBriefId || crypto.randomUUID();
   currentBriefType = type;
   currentBriefName = name;
@@ -1880,7 +1947,7 @@ async function saveBrief(type, name, assignedTo) {
     const { error } = await db.from('shoot_briefs').upsert({
       id: currentBriefId, type, name,
       assigned_to: assignedTo || null,
-      data: {}, updated_at: new Date().toISOString(),
+      data: otherMeta ? { otherMeta } : {}, updated_at: new Date().toISOString(),
     });
     if (error) throw error;
   } catch (e) {
@@ -1917,8 +1984,9 @@ function renderGrid(type) {
         <div class="card-assignee-avatar">${initials(item.assignedTo)}</div>
         <span class="card-assignee-name">${item.assignedTo}</span>
       </div>` : '';
+    const typeIcon = type === 'persona' ? '👤' : type === 'collection' ? '💎' : '📌';
     card.innerHTML = `
-      <span class="brief-card-icon">${type === 'persona' ? '👤' : '💎'}</span>
+      <span class="brief-card-icon">${typeIcon}</span>
       <div class="brief-card-name">${item.name}</div>
       <div class="brief-card-sub">${item.sub}</div>
       <div class="brief-card-meta">
@@ -1955,10 +2023,10 @@ function renderGrid(type) {
 
 function switchTab(type) {
   activeTab = type;
-  document.getElementById('tab-persona').classList.toggle('active', type === 'persona');
-  document.getElementById('tab-collection').classList.toggle('active', type === 'collection');
-  document.getElementById('home-grid-persona').style.display   = type === 'persona'    ? 'block' : 'none';
-  document.getElementById('home-grid-collection').style.display = type === 'collection' ? 'block' : 'none';
+  ['persona','collection','other'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === type);
+    document.getElementById('home-grid-' + t).style.display = t === type ? 'block' : 'none';
+  });
 }
 
 async function openBrief(type, name, id) {
@@ -1996,10 +2064,13 @@ let selectedType = null;
 function showSetup(preselect) {
   selectedType = null;
   selectedAssignee = null;
-  document.getElementById('opt-persona').classList.remove('selected');
-  document.getElementById('opt-collection').classList.remove('selected');
+  ['persona','collection','other'].forEach(t => document.getElementById('opt-' + t)?.classList.remove('selected'));
   document.getElementById('setup-name').value = '';
   document.getElementById('setup-btn').disabled = true;
+  document.getElementById('other-fields').classList.remove('visible');
+  document.getElementById('other-desc').value = '';
+  document.getElementById('other-link').value = '';
+  document.getElementById('other-img-preview').innerHTML = '';
   showScreen('setup-screen');
   renderAssignPills();
   if (preselect) selectType(preselect);
@@ -2007,12 +2078,14 @@ function showSetup(preselect) {
 
 function selectType(type) {
   selectedType = type;
-  document.getElementById('opt-persona').classList.toggle('selected', type === 'persona');
-  document.getElementById('opt-collection').classList.toggle('selected', type === 'collection');
-  const labels = { persona: 'Persona name', collection: 'Collection name' };
+  ['persona','collection','other'].forEach(t => {
+    document.getElementById('opt-' + t)?.classList.toggle('selected', t === type);
+  });
+  const labels = { persona: 'Persona name', collection: 'Collection name', other: 'Title' };
   document.getElementById('name-label').textContent = labels[type];
-  const placeholders = { persona: 'e.g. Gala Grandeur', collection: 'e.g. Lumiere · Qween of Eden' };
+  const placeholders = { persona: 'e.g. Gala Grandeur', collection: 'e.g. Lumiere · Qween of Eden', other: 'e.g. Homepage hero, Checkout flow…' };
   document.getElementById('setup-name').placeholder = placeholders[type];
+  document.getElementById('other-fields').classList.toggle('visible', type === 'other');
   document.getElementById('setup-name').focus();
   checkSetupReady();
 }
@@ -2026,7 +2099,16 @@ async function startBrief() {
   const name = document.getElementById('setup-name').value.trim();
   const type = selectedType;
   currentBriefId = crypto.randomUUID();
-  await saveBrief(type, name, selectedAssignee);
+  let otherMeta = null;
+  if (type === 'other') {
+    const imgEl = document.getElementById('other-img-preview').querySelector('img');
+    otherMeta = {
+      description: document.getElementById('other-desc').value.trim(),
+      link: document.getElementById('other-link').value.trim(),
+      image: imgEl ? imgEl.src : null,
+    };
+  }
+  await saveBrief(type, name, selectedAssignee, otherMeta);
   await loadBriefs();
   openBrief(type, name, currentBriefId);
 }
@@ -2581,6 +2663,24 @@ function initQuickBlocks() {
   });
 }
 
+function handleOtherImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    compressImage(e.target.result, compressed => {
+      const preview = document.getElementById('other-img-preview');
+      preview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = compressed;
+      img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ebebf5;';
+      preview.appendChild(img);
+    });
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
 function siAdd(chipsId, inputId) {
   const input = document.getElementById(inputId);
   const val = input.value.trim();
@@ -2683,7 +2783,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.1 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.2 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
