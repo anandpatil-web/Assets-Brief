@@ -2170,6 +2170,7 @@ async function openBrief(type, name, id) {
   isDirty = false;
   document.getElementById('save-dot').classList.remove('unsaved');
   setStatus('Loading…', 'saving');
+  clearBriefFields();
   try {
     if (id) {
       const { data, error } = await db.from('shoot_briefs').select('data').eq('id', id).single();
@@ -2569,6 +2570,17 @@ function collectBriefData() {
       .map(w => ({ src: w.dataset.src, name: w.dataset.name })).filter(w => w.src);
   });
   return data;
+}
+
+function clearBriefFields() {
+  ['sb-01','sb-02','sb-03','sb-hmu','sb-04','sb-05','sb-06'].forEach(sbId => {
+    const chips = document.getElementById('quick-chips-' + sbId);
+    if (chips) chips.innerHTML = '';
+    const notes = document.getElementById('quick-notes-' + sbId);
+    if (notes) notes.value = '';
+    const grid = document.getElementById('si-prev-' + sbId);
+    if (grid) grid.innerHTML = '';
+  });
 }
 
 function restoreBriefData(data) {
@@ -3029,7 +3041,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.8 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.9 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
