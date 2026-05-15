@@ -906,17 +906,29 @@
   }
   .brief-card-arrow { font-size: 16px; color: #d1d5db; }
   .brief-card:hover .brief-card-arrow { color: #7c5cfc; }
-  .card-delete-btn {
-    position: absolute; top: 10px; right: 10px;
-    width: 22px; height: 22px; border-radius: 50%;
+  .card-menu-wrap { position: absolute; top: 10px; right: 10px; z-index: 10; }
+  .card-dots-btn {
+    width: 28px; height: 28px; border-radius: 8px;
     background: transparent; border: none; cursor: pointer;
-    font-size: 13px; color: #d1d5db;
+    font-size: 16px; color: #c4c4d4; letter-spacing: 1px;
     display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
-    z-index: 2;
+    transition: background 0.12s, color 0.12s;
   }
-  .brief-card:hover .card-delete-btn { opacity: 1; }
-  .card-delete-btn:hover { background: #fee2e2; color: #ef4444; }
+  .card-dots-btn:hover { background: #f3f4f6; color: #6b7280; }
+  .card-dropdown {
+    display: none; position: absolute; top: 32px; right: 0;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1); min-width: 130px; overflow: hidden;
+  }
+  .card-dropdown.open { display: block; }
+  .card-dropdown-item {
+    width: 100%; padding: 9px 14px; background: none; border: none;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-align: left; transition: background 0.12s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-dropdown-item.danger { color: #ef4444; }
+  .card-dropdown-item.danger:hover { background: #fef2f2; }
 
   /* Undo toast */
   .undo-toast {
@@ -1757,12 +1769,19 @@ function renderGrid(type) {
         <span class="brief-card-arrow">›</span>
       </div>`;
     if (item.id) {
-      const del = document.createElement('button');
-      del.className = 'card-delete-btn';
-      del.title = 'Delete brief';
-      del.textContent = '🗑';
-      del.onclick = e => { e.stopPropagation(); softDelete(item.id, type, item.name, card); };
-      card.appendChild(del);
+      const wrap = document.createElement('div');
+      wrap.className = 'card-menu-wrap';
+      const btn = document.createElement('button');
+      btn.className = 'card-dots-btn';
+      btn.textContent = '···';
+      btn.onclick = e => { e.stopPropagation(); toggleCardMenu(wrap); };
+      const dropdown = document.createElement('div');
+      dropdown.className = 'card-dropdown';
+      dropdown.innerHTML = `<button class="card-dropdown-item danger">🗑 Delete</button>`;
+      dropdown.querySelector('button').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id, type, item.name, card); };
+      wrap.appendChild(btn);
+      wrap.appendChild(dropdown);
+      card.appendChild(wrap);
     }
     grid.appendChild(card);
   });
@@ -2155,6 +2174,17 @@ function makeThumbWrap(src, name) {
   return wrap;
 }
 
+// ── Card 3-dot menu ─────────────────────────────────────
+function toggleCardMenu(wrap) {
+  const dropdown = wrap.querySelector('.card-dropdown');
+  const isOpen = dropdown.classList.contains('open');
+  document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!isOpen) dropdown.classList.add('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+});
+
 // ── Soft delete + undo ───────────────────────────────────
 let undoTimer = null;
 let pendingDeleteId = null;
@@ -2352,7 +2382,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.7 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.0.8 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
