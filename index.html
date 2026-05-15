@@ -1926,25 +1926,23 @@ function renderGrid(type) {
         <span class="brief-card-arrow">›</span>
       </div>
       ${assigneeHtml}`;
-    if (item.id) {
-      const wrap = document.createElement('div');
-      wrap.className = 'card-menu-wrap';
-      const btn = document.createElement('button');
-      btn.className = 'card-dots-btn';
-      btn.textContent = '···';
-      btn.onclick = e => { e.stopPropagation(); toggleCardMenu(wrap); };
-      const dropdown = document.createElement('div');
-      dropdown.className = 'card-dropdown';
-      dropdown.dataset.id = item.id;
-      dropdown.dataset.type = type;
-      dropdown.dataset.name = item.name;
-      dropdown.dataset.assignedTo = item.assignedTo || '';
-      rebuildCardDropdown(dropdown);
-      dropdown.querySelector('.do-delete').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id, type, item.name, card); };
-      wrap.appendChild(btn);
-      wrap.appendChild(dropdown);
-      card.appendChild(wrap);
-    }
+    const wrap = document.createElement('div');
+    wrap.className = 'card-menu-wrap';
+    const btn = document.createElement('button');
+    btn.className = 'card-dots-btn';
+    btn.textContent = '···';
+    btn.onclick = e => { e.stopPropagation(); toggleCardMenu(wrap); };
+    const dropdown = document.createElement('div');
+    dropdown.className = 'card-dropdown';
+    dropdown.dataset.id = item.id || '';
+    dropdown.dataset.type = type;
+    dropdown.dataset.name = item.name;
+    dropdown.dataset.assignedTo = item.assignedTo || '';
+    rebuildCardDropdown(dropdown);
+    dropdown.querySelector('.do-delete').onclick = e => { e.stopPropagation(); dropdown.classList.remove('open'); softDelete(item.id || null, type, item.name, card); };
+    wrap.appendChild(btn);
+    wrap.appendChild(dropdown);
+    card.appendChild(wrap);
     grid.appendChild(card);
   });
   // New brief card
@@ -2465,11 +2463,17 @@ async function assignCard(id, type, name, assigneeName, dropdown) {
   dropdown.dataset.assignedTo = assigneeName;
   dropdown.classList.remove('open');
   try {
-    await db.from('shoot_briefs').update({ assigned_to: assigneeName || null }).eq('id', id);
+    if (!id) {
+      // Card not yet in Supabase — create it now
+      id = crypto.randomUUID();
+      dropdown.dataset.id = id;
+      await db.from('shoot_briefs').upsert({ id, type, name, assigned_to: assigneeName || null, data: {}, updated_at: new Date().toISOString() });
+    } else {
+      await db.from('shoot_briefs').update({ assigned_to: assigneeName || null }).eq('id', id);
+    }
   } catch (e) {}
-  // Update local SEED_DATA so card re-renders immediately
-  const item = SEED_DATA[type]?.find(i => i.id === id);
-  if (item) item.assignedTo = assigneeName || null;
+  const item = SEED_DATA[type]?.find(i => i.name === name);
+  if (item) { item.assignedTo = assigneeName || null; item.id = item.id || id; }
   renderGrid(type);
 }
 
@@ -2488,8 +2492,7 @@ let undoTimer = null;
 let pendingDeleteId = null;
 
 async function softDelete(id, type, name, cardEl) {
-  // Mark deleted in Supabase immediately
-  await db.from('shoot_briefs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  if (id) await db.from('shoot_briefs').update({ deleted_at: new Date().toISOString() }).eq('id', id);
   // Hide card
   cardEl.style.transition = 'opacity 0.2s, transform 0.2s';
   cardEl.style.opacity = '0'; cardEl.style.transform = 'scale(0.95)';
@@ -2680,7 +2683,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.0 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.1 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
