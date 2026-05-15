@@ -80,6 +80,92 @@
   /* MAIN */
   .main { max-width: 960px; margin: 0 auto; padding-bottom: 60px; }
 
+  /* Common Docs */
+  .common-docs {
+    max-width: 960px;
+    margin: 0 auto 20px;
+    background: #fff;
+    border: 1px solid #ebebf5;
+    border-radius: 14px;
+    padding: 14px 18px 16px;
+    box-shadow: 0 1px 4px rgba(100,100,160,0.06);
+  }
+  .common-docs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .common-docs-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: #9ca3af;
+  }
+  .common-docs-upload-btn {
+    font-size: 11px;
+    font-weight: 700;
+    color: #7c5cfc;
+    background: #f5f3ff;
+    border: 1px dashed #c4b5fd;
+    border-radius: 7px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s;
+  }
+  .common-docs-upload-btn:hover { background: #ede9fe; }
+  .common-docs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .common-docs-empty {
+    font-size: 12px;
+    color: #c4c4d4;
+    padding: 4px 0;
+  }
+  .doc-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fafafa;
+    border: 1px solid #ebebf5;
+    border-radius: 9px;
+    padding: 7px 10px;
+    min-width: 0;
+    max-width: 240px;
+  }
+  .doc-card-icon { font-size: 18px; flex-shrink: 0; }
+  .doc-card-info { flex: 1; min-width: 0; }
+  .doc-card-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .doc-card-meta { font-size: 10px; color: #9ca3af; }
+  .doc-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .doc-card-btn {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  .doc-card-btn.preview { background: #ede9fe; color: #7c5cfc; }
+  .doc-card-btn.preview:hover { background: #ddd6fe; }
+  .doc-card-btn.download { background: #f0fdf4; color: #16a34a; }
+  .doc-card-btn.download:hover { background: #dcfce7; }
+  .doc-card-btn.remove { background: #fef2f2; color: #ef4444; }
+  .doc-card-btn.remove:hover { background: #fee2e2; }
+
   /* SECTION */
   .section { margin-bottom: 10px; }
   .section-block {
@@ -1568,6 +1654,18 @@
   </div>
 </div>
 
+<!-- COMMON DOCS -->
+<div class="common-docs">
+  <div class="common-docs-header">
+    <span class="common-docs-title">📁 Common Documents</span>
+    <button class="common-docs-upload-btn" onclick="document.getElementById('common-docs-input').click()">+ Upload</button>
+    <input type="file" id="common-docs-input" accept=".pdf,.ppt,.pptx,.doc,.docx,.key,.xlsx,.xls" multiple style="display:none" onchange="handleDocsUpload(event)">
+  </div>
+  <div class="common-docs-list" id="common-docs-list">
+    <span class="common-docs-empty">No documents yet — upload PDFs, PPTs or Docs</span>
+  </div>
+</div>
+
 <main class="main">
 
   <!-- 1. CREATIVE CONCEPT -->
@@ -2101,6 +2199,7 @@ async function openBrief(type, name, id) {
   const label = (type === 'persona' ? '👤 ' : '💎 ') + name;
   document.getElementById('context-chip').textContent = '← ' + label;
   showScreen('brief-screen');
+  loadCommonDocs();
   isDirty = false;
   document.getElementById('save-dot').classList.remove('unsaved');
   setStatus('Loading…', 'saving');
@@ -2191,6 +2290,102 @@ document.getElementById('setup-name').addEventListener('keydown', e => {
 document.getElementById('setup-screen').addEventListener('click', e => {
   if (e.target.id === 'setup-back') showScreen('home-screen');
 });
+
+// ── Common Documents ────────────────────────────────────
+const DOCS_KEY = 'shoot_common_docs';
+
+function loadCommonDocs() {
+  const docs = JSON.parse(localStorage.getItem(DOCS_KEY) || '[]');
+  renderCommonDocs(docs);
+}
+
+function saveCommonDocs(docs) {
+  localStorage.setItem(DOCS_KEY, JSON.stringify(docs));
+}
+
+function handleDocsUpload(event) {
+  const files = Array.from(event.target.files);
+  event.target.value = '';
+  const docs = JSON.parse(localStorage.getItem(DOCS_KEY) || '[]');
+  let pending = files.length;
+  files.forEach(file => {
+    if (file.size > 15 * 1024 * 1024) {
+      alert(`"${file.name}" is over 15 MB and was skipped.`);
+      pending--;
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      docs.push({ id: crypto.randomUUID(), name: file.name, type: file.type, size: file.size, data: e.target.result, uploadedAt: new Date().toISOString() });
+      pending--;
+      if (pending === 0) { saveCommonDocs(docs); renderCommonDocs(docs); }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeCommonDoc(id) {
+  const docs = JSON.parse(localStorage.getItem(DOCS_KEY) || '[]').filter(d => d.id !== id);
+  saveCommonDocs(docs);
+  renderCommonDocs(docs);
+}
+
+function docIcon(type, name) {
+  if (type.includes('pdf') || name.endsWith('.pdf')) return '📄';
+  if (type.includes('presentation') || name.match(/\.(ppt|pptx|key)$/i)) return '📊';
+  if (type.includes('spreadsheet') || name.match(/\.(xls|xlsx)$/i)) return '📈';
+  if (type.includes('word') || name.match(/\.(doc|docx)$/i)) return '📝';
+  return '📎';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function renderCommonDocs(docs) {
+  const list = document.getElementById('common-docs-list');
+  if (!list) return;
+  if (!docs.length) {
+    list.innerHTML = '<span class="common-docs-empty">No documents yet — upload PDFs, PPTs or Docs</span>';
+    return;
+  }
+  list.innerHTML = '';
+  docs.forEach(doc => {
+    const card = document.createElement('div');
+    card.className = 'doc-card';
+    const isPDF = doc.type.includes('pdf') || doc.name.endsWith('.pdf');
+    card.innerHTML = `
+      <span class="doc-card-icon">${docIcon(doc.type, doc.name)}</span>
+      <div class="doc-card-info">
+        <div class="doc-card-name" title="${doc.name}">${doc.name}</div>
+        <div class="doc-card-meta">${formatBytes(doc.size)}</div>
+      </div>
+      <div class="doc-card-actions">
+        ${isPDF ? `<button class="doc-card-btn preview" onclick="previewDoc('${doc.id}')">Preview</button>` : ''}
+        <button class="doc-card-btn download" onclick="downloadDoc('${doc.id}')">↓</button>
+        <button class="doc-card-btn remove" onclick="removeCommonDoc('${doc.id}')">×</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function downloadDoc(id) {
+  const doc = JSON.parse(localStorage.getItem(DOCS_KEY) || '[]').find(d => d.id === id);
+  if (!doc) return;
+  const a = document.createElement('a');
+  a.href = doc.data;
+  a.download = doc.name;
+  a.click();
+}
+
+function previewDoc(id) {
+  const doc = JSON.parse(localStorage.getItem(DOCS_KEY) || '[]').find(d => d.id === id);
+  if (!doc) return;
+  const win = window.open();
+  win.document.write(`<iframe src="${doc.data}" style="width:100%;height:100vh;border:none;"></iframe>`);
+}
 
 // ── Init ────────────────────────────────────────────────
 // ── Team Members ─────────────────────────────────────────
@@ -2867,7 +3062,7 @@ function exportHTML() {
   a.click();
 }
 </script>
-<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.5 · 15 May</div>
+<div style="position:fixed;bottom:12px;right:16px;font-size:10px;font-weight:700;color:#c4c4d4;letter-spacing:0.5px;pointer-events:none;z-index:9999;">v1.1.7 · 15 May</div>
 
 <div class="undo-toast" id="undo-toast">
   <span id="undo-msg">Brief deleted</span>
