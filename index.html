@@ -46,6 +46,50 @@
     color: #9ca3af;
     margin-bottom: 16px;
   }
+  .brief-figma-row {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+  }
+  .brief-figma-row.visible { display: flex; }
+  .brief-figma-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #7c5cfc;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+  .brief-figma-input {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid #ddd6fe;
+    border-radius: 7px;
+    background: #fff;
+    color: #1a1a2e;
+    outline: none;
+  }
+  .brief-figma-input:focus { border-color: #7c5cfc; }
+  .brief-figma-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7c5cfc;
+    text-decoration: none;
+    padding: 5px 10px;
+    background: #ede9fe;
+    border-radius: 7px;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .brief-figma-open:hover { background: #ddd6fe; }
   .header-actions {
     display: flex;
     gap: 8px;
@@ -1691,6 +1735,14 @@
     <p class="header-eyebrow">AI Image Production · Brief Template</p>
     <h1 class="header-title">Jewellery Shoot <em>to AI Brief</em></h1>
     <p class="header-sub">Every field is editable. Upload reference images where indicated. Prompt tokens can be added or removed.</p>
+    <div class="brief-figma-row" id="brief-figma-row">
+      <span class="brief-figma-label">Figma</span>
+      <input class="brief-figma-input" id="brief-figma-input" type="url" placeholder="Paste Figma link…" oninput="saveBriefFigmaLink()">
+      <a class="brief-figma-open" id="brief-figma-open" href="#" target="_blank" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open
+      </a>
+    </div>
     <div class="header-actions">
       <button class="btn btn-primary" onclick="window.print()">Save as PDF</button>
     </div>
@@ -2230,6 +2282,19 @@ async function openBrief(type, name, id) {
   const label = (type === 'persona' ? '👤 ' : '💎 ') + name;
   document.getElementById('context-chip').textContent = '← ' + label;
   showScreen('brief-screen');
+  // Figma row — only for collections
+  const figmaRow = document.getElementById('brief-figma-row');
+  const figmaInput = document.getElementById('brief-figma-input');
+  const figmaOpen = document.getElementById('brief-figma-open');
+  if (type === 'collection') {
+    figmaRow.classList.add('visible');
+    const meta = getCardMeta(type, name);
+    figmaInput.value = meta.figmaLink || '';
+    updateBriefFigmaOpen();
+  } else {
+    figmaRow.classList.remove('visible');
+    figmaInput.value = '';
+  }
   loadCommonDocs();
   isDirty = false;
   document.getElementById('save-dot').classList.remove('unsaved');
@@ -2252,6 +2317,24 @@ async function openBrief(type, name, id) {
   setStatus('All changes saved', '');
   watchForChanges();
   startAutosave();
+}
+
+function saveBriefFigmaLink() {
+  const val = document.getElementById('brief-figma-input').value.trim();
+  saveCardMeta(currentBriefType, currentBriefName, { figmaLink: val });
+  updateBriefFigmaOpen();
+  renderGrid(currentBriefType);
+}
+
+function updateBriefFigmaOpen() {
+  const val = document.getElementById('brief-figma-input').value.trim();
+  const btn = document.getElementById('brief-figma-open');
+  if (val) {
+    btn.href = val;
+    btn.style.display = 'inline-flex';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 // ── Setup ───────────────────────────────────────────────
@@ -2838,14 +2921,6 @@ function rebuildCardDropdown(dropdown) {
       <input class="card-meta-input" id="dd-tmpl-${name.replace(/\s/g,'_')}" type="text" placeholder="e.g. 01, A2…" value="${meta.templateNo || ''}" maxlength="10">
       <button class="card-meta-save-btn do-save-tmpl">Set</button>
     </div>`;
-  if (type === 'collection') {
-    html += `
-    <div class="card-dropdown-label" style="margin-top:6px;">Figma link</div>
-    <div class="card-meta-row">
-      <input class="card-meta-input" id="dd-figma-${name.replace(/\s/g,'_')}" type="url" placeholder="https://figma.com/…" value="${meta.figmaLink || ''}">
-      <button class="card-meta-save-btn do-save-figma">Set</button>
-    </div>`;
-  }
   html += '<div class="card-dropdown-divider" style="margin-top:8px;"></div>';
   html += '<div class="card-dropdown-label">Assign to</div>';
   if (teamMembers.length) {
@@ -2870,14 +2945,6 @@ function rebuildCardDropdown(dropdown) {
     e.stopPropagation();
     const val = dropdown.querySelector('[id^="dd-tmpl-"]').value.trim();
     saveCardMeta(type, name, { templateNo: val });
-    dropdown.classList.remove('open');
-    renderGrid(type);
-  };
-  const figmaBtn = dropdown.querySelector('.do-save-figma');
-  if (figmaBtn) figmaBtn.onclick = e => {
-    e.stopPropagation();
-    const val = dropdown.querySelector('[id^="dd-figma-"]').value.trim();
-    saveCardMeta(type, name, { figmaLink: val });
     dropdown.classList.remove('open');
     renderGrid(type);
   };
