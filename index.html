@@ -2791,12 +2791,14 @@ function renderLinksList() {
   }).join('');
 }
 
-// Allow Enter key to add link
-document.getElementById('links-url-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); addLink(); }
-});
-document.getElementById('links-label-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('links-url-input').focus(); }
+// Allow Enter key to add link (deferred — modal HTML is parsed after this script block)
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('links-url-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addLink(); }
+  });
+  document.getElementById('links-label-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('links-url-input').focus(); }
+  });
 });
 
 // ── Master Prompt ────────────────────────────────────────
