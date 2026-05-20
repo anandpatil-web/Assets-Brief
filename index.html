@@ -1500,6 +1500,114 @@
   }
   .settings-icon-btn:hover { border-color: #c4b5fd; box-shadow: 0 2px 8px rgba(124,92,252,0.15); }
 
+  /* Links & Decks modal */
+  .links-modal-overlay {
+    position: fixed; inset: 0; z-index: 9000;
+    background: rgba(15,12,30,0.45);
+    backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+  }
+  .links-modal-overlay.open { display: flex; }
+  .links-modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%; max-width: 480px;
+    margin: 20px;
+    box-shadow: 0 20px 60px rgba(60,40,120,0.18);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    max-height: 80vh;
+  }
+  .links-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid #f0f0f8;
+  }
+  .links-modal-title {
+    font-size: 15px; font-weight: 700; color: #1a1a2e;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .links-modal-close {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: none; background: #f3f4f6; cursor: pointer;
+    font-size: 14px; color: #6b7280;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.12s;
+  }
+  .links-modal-close:hover { background: #e5e7eb; }
+  .links-modal-body {
+    padding: 16px 22px;
+    overflow-y: auto; flex: 1;
+  }
+  .links-add-row {
+    display: flex; gap: 8px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .links-add-input {
+    flex: 1; min-width: 0;
+    font-size: 12px; padding: 8px 11px;
+    border: 1px solid #e5e7eb; border-radius: 8px;
+    background: #fafafa; color: #1a1a2e; outline: none;
+    font-family: inherit;
+  }
+  .links-add-input:focus { border-color: #7c5cfc; background: #fff; }
+  .links-add-btn {
+    font-size: 12px; font-weight: 700; padding: 8px 14px;
+    background: #7c5cfc; color: #fff; border: none;
+    border-radius: 8px; cursor: pointer; white-space: nowrap;
+    transition: background 0.12s;
+  }
+  .links-add-btn:hover { background: #6342e8; }
+  .links-list { display: flex; flex-direction: column; gap: 8px; }
+  .links-empty {
+    font-size: 12px; color: #9ca3af; text-align: center;
+    padding: 24px 0;
+  }
+  .link-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #f9f9ff; border: 1px solid #ede9fe;
+    border-radius: 10px;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .link-item:hover { border-color: #c4b5fd; background: #f5f3ff; }
+  .link-item-favicon {
+    width: 20px; height: 20px; border-radius: 5px;
+    object-fit: cover; flex-shrink: 0;
+    background: #ede9fe;
+  }
+  .link-item-favicon-placeholder {
+    width: 20px; height: 20px; border-radius: 5px;
+    background: #ede9fe; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #7c5cfc;
+  }
+  .link-item-info { flex: 1; min-width: 0; }
+  .link-item-label {
+    font-size: 12px; font-weight: 600; color: #1a1a2e;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .link-item-url {
+    font-size: 10px; color: #9ca3af;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .link-item-open {
+    font-size: 11px; font-weight: 600; color: #7c5cfc;
+    text-decoration: none; padding: 4px 9px;
+    border: 1px solid #ddd6fe; border-radius: 6px;
+    background: #fff; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.12s, color 0.12s;
+  }
+  .link-item-open:hover { background: #ede9fe; color: #6342e8; }
+  .link-item-del {
+    width: 24px; height: 24px; border-radius: 6px;
+    border: none; background: transparent; cursor: pointer;
+    color: #d1d5db; font-size: 13px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.12s, background 0.12s;
+  }
+  .link-item-del:hover { color: #ef4444; background: #fef2f2; }
+
   /* Breadcrumb chip in header */
   .header-context-chip {
     display: inline-flex;
@@ -1622,6 +1730,7 @@
         <div class="home-sub">AI image production briefs by persona &amp; collection</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
+        <button class="settings-icon-btn" onclick="openLinksModal()" title="Links &amp; Decks">🔗</button>
         <button class="settings-icon-btn" onclick="showSettings()" title="Settings">⚙️</button>
         <button class="btn btn-primary" onclick="showSetup()">+ New Brief</button>
       </div>
@@ -2610,6 +2719,86 @@ function showSettings() {
 loadBriefs(); // async — renders grids internally after fetch
 loadTeamMembers();
 
+// ── Links & Decks ────────────────────────────────────────
+const LINKS_KEY = 'shoot_links';
+
+function getLinks() {
+  return JSON.parse(localStorage.getItem(LINKS_KEY) || '[]');
+}
+function saveLinks(arr) {
+  localStorage.setItem(LINKS_KEY, JSON.stringify(arr));
+}
+
+function openLinksModal() {
+  document.getElementById('links-modal-overlay').classList.add('open');
+  renderLinksList();
+  document.getElementById('links-label-input').focus();
+}
+function closeLinksModal() {
+  document.getElementById('links-modal-overlay').classList.remove('open');
+  document.getElementById('links-label-input').value = '';
+  document.getElementById('links-url-input').value = '';
+}
+
+function addLink() {
+  const label = document.getElementById('links-label-input').value.trim();
+  const url   = document.getElementById('links-url-input').value.trim();
+  if (!url) return;
+  const links = getLinks();
+  links.push({ id: crypto.randomUUID(), label: label || url, url });
+  saveLinks(links);
+  document.getElementById('links-label-input').value = '';
+  document.getElementById('links-url-input').value = '';
+  renderLinksList();
+}
+
+function removeLink(id) {
+  const links = getLinks().filter(l => l.id !== id);
+  saveLinks(links);
+  renderLinksList();
+}
+
+function getFaviconUrl(url) {
+  try {
+    const { hostname } = new URL(url);
+    return `https://www.google.com/s2/favicons?sz=32&domain=${hostname}`;
+  } catch { return null; }
+}
+
+function renderLinksList() {
+  const links = getLinks();
+  const list = document.getElementById('links-list');
+  if (!links.length) {
+    list.innerHTML = '<div class="links-empty">No links yet — add a link above</div>';
+    return;
+  }
+  list.innerHTML = links.map(l => {
+    const favicon = getFaviconUrl(l.url);
+    const iconHtml = favicon
+      ? `<img class="link-item-favicon" src="${favicon}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        + `<div class="link-item-favicon-placeholder" style="display:none">🔗</div>`
+      : `<div class="link-item-favicon-placeholder">🔗</div>`;
+    return `
+      <div class="link-item" id="lnk-${l.id}">
+        ${iconHtml}
+        <div class="link-item-info">
+          <div class="link-item-label">${l.label}</div>
+          <div class="link-item-url">${l.url}</div>
+        </div>
+        <a class="link-item-open" href="${l.url}" target="_blank" rel="noopener">Open ↗</a>
+        <button class="link-item-del" onclick="removeLink('${l.id}')" title="Remove">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// Allow Enter key to add link
+document.getElementById('links-url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addLink(); }
+});
+document.getElementById('links-label-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('links-url-input').focus(); }
+});
+
 // ── Master Prompt ────────────────────────────────────────
 const BRIEF_SECTIONS = [
   { label: 'Creative Concept',  sbId: 'sb-01', tokens: [] },
@@ -3229,6 +3418,29 @@ function exportHTML() {
   <span id="undo-msg">Brief deleted</span>
   <button class="undo-btn" id="undo-btn">Undo</button>
   <div class="undo-bar"><div class="undo-bar-fill" id="undo-bar-fill"></div></div>
+</div>
+
+<!-- LINKS & DECKS MODAL -->
+<div class="links-modal-overlay" id="links-modal-overlay" onclick="if(event.target===this)closeLinksModal()">
+  <div class="links-modal">
+    <div class="links-modal-header">
+      <div class="links-modal-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5cfc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Links &amp; Decks
+      </div>
+      <button class="links-modal-close" onclick="closeLinksModal()">✕</button>
+    </div>
+    <div class="links-modal-body">
+      <div class="links-add-row">
+        <input class="links-add-input" id="links-label-input" type="text" placeholder="Label (e.g. Brand Deck)" maxlength="60">
+        <input class="links-add-input" id="links-url-input" type="url" placeholder="https://…" style="flex:2">
+        <button class="links-add-btn" onclick="addLink()">+ Add</button>
+      </div>
+      <div class="links-list" id="links-list">
+        <div class="links-empty">No links yet — add a link above</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
