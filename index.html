@@ -2720,19 +2720,61 @@ loadBriefs(); // async — renders grids internally after fetch
 loadTeamMembers();
 
 // ── Links & Decks ────────────────────────────────────────
-const LINKS_KEY = 'shoot_links';
+// ── Links & Decks — Supabase-backed ─────────────────────
+const LINKS_KEY   = 'shoot_links';              // localStorage cache
+const LINKS_ROW_TYPE = '_config';
+const LINKS_ROW_NAME = 'global_links';
+let   _linksRowId    = null;                    // Supabase row id once known
 
-function getLinks() {
+// Read from localStorage cache (fast, used for immediate render)
+function getLinksCache() {
   return JSON.parse(localStorage.getItem(LINKS_KEY) || '[]');
 }
-function saveLinks(arr) {
+function setLinksCache(arr) {
   localStorage.setItem(LINKS_KEY, JSON.stringify(arr));
 }
 
-function openLinksModal() {
+// Load from Supabase; fall back to localStorage
+async function loadLinksFromDB() {
+  try {
+    const { data, error } = await db
+      .from('shoot_briefs')
+      .select('id, data')
+      .eq('type', LINKS_ROW_TYPE)
+      .eq('name', LINKS_ROW_NAME)
+      .maybeSingle();
+    if (error) throw error;
+    if (data) {
+      _linksRowId = data.id;
+      const links = data.data?.links || [];
+      setLinksCache(links);
+      return links;
+    }
+  } catch (e) { /* fall through */ }
+  return getLinksCache();
+}
+
+// Persist to Supabase + localStorage
+async function persistLinks(arr) {
+  setLinksCache(arr);
+  try {
+    if (!_linksRowId) _linksRowId = crypto.randomUUID();
+    await db.from('shoot_briefs').upsert({
+      id: _linksRowId,
+      type: LINKS_ROW_TYPE,
+      name: LINKS_ROW_NAME,
+      data: { links: arr },
+      updated_at: new Date().toISOString()
+    });
+  } catch (e) { console.warn('Links DB save failed, localStorage kept:', e); }
+}
+
+async function openLinksModal() {
   document.getElementById('links-modal-overlay').classList.add('open');
-  renderLinksList();
+  renderLinksList(getLinksCache()); // show cached instantly
   document.getElementById('links-label-input').focus();
+  const fresh = await loadLinksFromDB();
+  renderLinksList(fresh);           // refresh with DB data
 }
 function closeLinksModal() {
   document.getElementById('links-modal-overlay').classList.remove('open');
@@ -2740,22 +2782,22 @@ function closeLinksModal() {
   document.getElementById('links-url-input').value = '';
 }
 
-function addLink() {
+async function addLink() {
   const label = document.getElementById('links-label-input').value.trim();
   const url   = document.getElementById('links-url-input').value.trim();
   if (!url) return;
-  const links = getLinks();
+  const links = getLinksCache();
   links.push({ id: crypto.randomUUID(), label: label || url, url });
-  saveLinks(links);
+  renderLinksList(links);           // optimistic update
   document.getElementById('links-label-input').value = '';
   document.getElementById('links-url-input').value = '';
-  renderLinksList();
+  await persistLinks(links);
 }
 
-function removeLink(id) {
-  const links = getLinks().filter(l => l.id !== id);
-  saveLinks(links);
-  renderLinksList();
+async function removeLink(id) {
+  const links = getLinksCache().filter(l => l.id !== id);
+  renderLinksList(links);           // optimistic update
+  await persistLinks(links);
 }
 
 function getFaviconUrl(url) {
@@ -2765,10 +2807,10 @@ function getFaviconUrl(url) {
   } catch { return null; }
 }
 
-function renderLinksList() {
-  const links = getLinks();
+function renderLinksList(links) {
   const list = document.getElementById('links-list');
-  if (!links.length) {
+  if (!list) return;
+  if (!links || !links.length) {
     list.innerHTML = '<div class="links-empty">No links yet — add a link above</div>';
     return;
   }
