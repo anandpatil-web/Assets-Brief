@@ -2267,6 +2267,7 @@ async function loadBriefs() {
     SEED_DATA.collection = [];
     SEED_DATA.other = [];
     (data || []).forEach(b => {
+      if (b.name && b.name.startsWith('__')) return; // skip reserved config rows
       const list = SEED_DATA[b.type];
       if (!list) return;
       const existing = list.find(i => i.name === b.name);
@@ -2722,8 +2723,8 @@ loadTeamMembers();
 // ── Links & Decks ────────────────────────────────────────
 // ── Links & Decks — Supabase-backed ─────────────────────
 const LINKS_KEY   = 'shoot_links';              // localStorage cache
-const LINKS_ROW_TYPE = '_config';
-const LINKS_ROW_NAME = 'global_links';
+const LINKS_ROW_TYPE = 'collection';
+const LINKS_ROW_NAME = '__global_links__';
 let   _linksRowId    = null;                    // Supabase row id once known
 
 // Read from localStorage cache (fast, used for immediate render)
